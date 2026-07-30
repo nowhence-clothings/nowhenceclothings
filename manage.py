@@ -17,7 +17,7 @@ def main():
     except Exception as e:
         print("Copy failed in manage.py:", e)
 
-    os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'mysite.settings')
+    os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'mysite.settings.prod')
     try:
         from django.core.management import execute_from_command_line
     except ImportError as exc:
