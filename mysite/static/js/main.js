@@ -49,6 +49,18 @@
     });
 })();
 
+function escapeHtml(value) {
+    return String(value ?? '').replace(/[&<>"']/g, function(char) {
+        return {
+            '&': '&amp;',
+            '<': '&lt;',
+            '>': '&gt;',
+            '"': '&quot;',
+            "'": '&#39;',
+        }[char];
+    });
+}
+
 // ============================================================
 // Dark / Light Theme Toggle
 // ============================================================
@@ -114,15 +126,15 @@
 (function initSearch() {
     const toggle = document.getElementById('searchToggle');
     const overlay = document.getElementById('searchOverlay');
+    if (!toggle || !overlay) return;
+
     const input = document.getElementById('searchInput');
     const results = document.getElementById('searchResults');
     const clearBtn = document.getElementById('searchClear');
     const closeBtn = document.getElementById('searchClose');
-    const backdrop = overlay?.querySelector('.search-overlay-backdrop');
-
+    const backdrop = overlay.querySelector('.search-overlay-backdrop');
     const container = overlay.querySelector('.search-container');
-
-    if (!toggle || !overlay) return;
+    if (!input || !results || !clearBtn || !closeBtn || !backdrop || !container) return;
 
     let debounceTimer = null;
     let abortController = null;
@@ -177,22 +189,29 @@
                     return;
                 }
                 results.innerHTML = data.results.map(item => {
+                    const name = escapeHtml(item.name || '');
+                    const category = escapeHtml(item.category || '');
+                    const section = escapeHtml(item.section || '');
+                    const url = escapeHtml(item.url || '');
+                    const price = escapeHtml(item.price || '');
+                    const discountedPrice = escapeHtml(item.discounted_price || '');
+                    const image = escapeHtml(item.image || '');
                     let priceHTML = '';
                     if (item.price) {
                         if (item.discounted_price && item.discount > 0) {
-                            priceHTML = `<p class="search-result-price">${item.discounted_price}<span class="original-price">${item.price}</span><span class="discount-badge">${item.discount}% OFF</span></p>`;
+                            priceHTML = `<p class="search-result-price">${discountedPrice}<span class="original-price">${price}</span><span class="discount-badge">${item.discount}% OFF</span></p>`;
                         } else {
-                            priceHTML = `<p class="search-result-price">${item.price}</p>`;
+                            priceHTML = `<p class="search-result-price">${price}</p>`;
                         }
                     }
                     const imgHTML = item.image
-                        ? `<img src="${item.image}" alt="${item.name}" class="search-result-img" loading="lazy">`
+                        ? `<img src="${image}" alt="${name}" class="search-result-img" loading="lazy">`
                         : '';
-                    return `<div class="search-result-item" data-section="${item.section || ''}" data-url="${item.url || ''}">
+                    return `<div class="search-result-item" data-section="${section}" data-url="${url}">
                         ${imgHTML}
                         <div class="search-result-info">
-                            <p class="search-result-category">${item.category || ''}</p>
-                            <p class="search-result-name">${item.name}</p>
+                            <p class="search-result-category">${category}</p>
+                            <p class="search-result-name">${name}</p>
                             ${priceHTML}
                         </div>
                         ${item.url ? '<span class="search-result-arrow"><i class="fas fa-arrow-right"></i></span>' : ''}
@@ -282,22 +301,40 @@ if (typeof Lenis !== 'undefined') {
 // Splash Cursor — comet-tail: sleek at pointer, swells outward
 // (Disabled on touch devices for performance)
 // ============================================================
-const _isTouchDevice = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0);
+const _prefersReducedMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+const _hasPrimaryFinePointer = window.matchMedia ? window.matchMedia('(hover: hover) and (pointer: fine)').matches : true;
+const _hasAnyFinePointer = window.matchMedia ? window.matchMedia('(any-hover: hover) and (any-pointer: fine)').matches : true;
+const _hasFinePointer = _hasPrimaryFinePointer || _hasAnyFinePointer;
+const _isTouchDevice = !_hasFinePointer || _prefersReducedMotion;
+const _cursorAlreadyInitialized = Boolean(window.__ambavaCursorInitialized);
 const _canvas = document.getElementById('cursor-canvas');
 if (_canvas && _isTouchDevice) {
     _canvas.style.display = 'none';
 }
-const _ctx = (_canvas && !_isTouchDevice) ? _canvas.getContext('2d') : null;
+if (_canvas && !_isTouchDevice && !_cursorAlreadyInitialized) {
+    window.__ambavaCursorInitialized = true;
+}
+const _ctx = (_canvas && !_isTouchDevice && !_cursorAlreadyInitialized) ? _canvas.getContext('2d') : null;
 let _cw, _ch;
 
 function resizeCanvas() {
     _cw = window.innerWidth;
     _ch = window.innerHeight;
-    if (_canvas) { _canvas.width = _cw; _canvas.height = _ch; }
+    if (_canvas) {
+        const dpr = Math.min(window.devicePixelRatio || 1, 2);
+        _canvas.width = Math.floor(_cw * dpr);
+        _canvas.height = Math.floor(_ch * dpr);
+        _canvas.style.width = `${_cw}px`;
+        _canvas.style.height = `${_ch}px`;
+        if (_ctx) {
+            _ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+        }
+    }
 }
 resizeCanvas();
 window.addEventListener('resize', resizeCanvas, { passive: true });
 
+if (_ctx) {
 // Luxury color palette
 const SPLASH_COLORS = [
     [196, 165, 123],  // gold
@@ -476,7 +513,8 @@ function cursorLoop(now) {
 
     requestAnimationFrame(cursorLoop);
 }
-if (_canvas) requestAnimationFrame(cursorLoop);
+requestAnimationFrame(cursorLoop);
+}
 
 // Parallax is now handled in the main animation loop below — no separate handler needed
 
@@ -545,7 +583,7 @@ if (contactForm) {
                 contactForm.reset();
                 contactForm.innerHTML = '<div style="text-align:center;padding:2rem;"><i class="fas fa-check-circle" style="font-size:2.5rem;color:#4CAF50;margin-bottom:1rem;"></i><p style="font-size:1.1rem;">Thank you! We\'ll get back to you soon.</p></div>';
             } else {
-                alert(data.error || 'Something went wrong. Please try again.');
+                alert(data.error || Object.values(data.errors || {})[0] || 'Something went wrong. Please try again.');
             }
         } catch (err) {
             alert('Network error. Please try again.');
@@ -982,7 +1020,50 @@ if (mobileMenuToggle) {
 // Shopping Cart — Slide-out Drawer
 // ============================================================
 (function initCart() {
-    let cart = JSON.parse(localStorage.getItem('ambava_cart')) || [];
+    function readStoredCart() {
+        try {
+            const raw = localStorage.getItem('ambava_cart');
+            if (!raw) return [];
+            const parsed = JSON.parse(raw);
+            return Array.isArray(parsed) ? parsed : [];
+        } catch (err) {
+            localStorage.removeItem('ambava_cart');
+            return [];
+        }
+    }
+
+    let cart = readStoredCart();
+    const trimCartValue = (value) => String(value || '').trim();
+
+    function normalizeCartItem(item) {
+        if (!item || typeof item !== 'object') return null;
+        const name = trimCartValue(item.name);
+        const slug = trimCartValue(item.slug);
+        const identifier = slug || name;
+        if (!identifier) return null;
+
+        const price = Number.parseInt(item.price, 10);
+        const quantity = Number.parseInt(item.quantity, 10);
+
+        return {
+            name: name || slug,
+            slug,
+            price: Number.isFinite(price) ? price : 0,
+            image: trimCartValue(item.image),
+            size: trimCartValue(item.size),
+            quantity: Number.isFinite(quantity) && quantity > 0 ? quantity : 1,
+        };
+    }
+
+    function getCartIdentifier(item) {
+        return trimCartValue(item?.slug) || trimCartValue(item?.name);
+    }
+
+    function getCartKey(identifier, size) {
+        return `${identifier}||${trimCartValue(size)}`;
+    }
+
+    cart = Array.isArray(cart) ? cart.map(normalizeCartItem).filter(Boolean) : [];
 
     // DOM references
     const toggleBtn = document.getElementById('cartToggle');
@@ -994,7 +1075,7 @@ if (mobileMenuToggle) {
     const badge = document.getElementById('cartBadge');
     const subtotalEl = document.getElementById('cartSubtotal');
 
-    if (!overlay || !toggleBtn) return;
+    if (!overlay || !toggleBtn || !closeBtn || !backdrop || !body || !footer || !badge || !subtotalEl) return;
 
     // ── Open / Close ──
     function openCart(e) {
@@ -1054,7 +1135,7 @@ if (mobileMenuToggle) {
 
         const toast = document.createElement('div');
         toast.className = 'cart-toast';
-        toast.innerHTML = `<i class="fas fa-check-circle"></i> ${message}`;
+        toast.innerHTML = `<i class="fas fa-check-circle"></i> ${escapeHtml(message)}`;
         document.body.appendChild(toast);
 
         requestAnimationFrame(() => {
@@ -1069,25 +1150,39 @@ if (mobileMenuToggle) {
 
     // ── Add to cart (exposed globally for shop page) ──
     window.addToCart = addToCart;
-    function addToCart(name, price, image, size) {
-        size = size || '';
-        const existing = cart.find(i => i.name === name && i.size === size);
+    function addToCart(name, price, image, size, slug) {
+        const normalizedName = trimCartValue(name);
+        const normalizedSlug = trimCartValue(slug);
+        const normalizedSize = trimCartValue(size);
+        const identifier = normalizedSlug || normalizedName;
+        const parsedPrice = Number.parseInt(price, 10);
+
+        if (!identifier || !Number.isFinite(parsedPrice)) return;
+
+        const existing = cart.find(i => getCartIdentifier(i) === identifier && (i.size || '') === normalizedSize);
         if (existing) {
             existing.quantity += 1;
         } else {
-            cart.push({ name, price: parseInt(price), image: image || '', size, quantity: 1 });
+            cart.push({
+                name: normalizedName || normalizedSlug,
+                slug: normalizedSlug,
+                price: parsedPrice,
+                image: trimCartValue(image),
+                size: normalizedSize,
+                quantity: 1,
+            });
         }
         saveCart();
         updateBadge();
         bumpBadge();
-        showToast(`${name} added to cart!`);
+        showToast(`${normalizedName || 'Item'} added to cart!`);
         // If cart is open, re-render
         if (overlay.classList.contains('active')) renderCart();
     }
 
     // ── Remove from cart ──
-    function removeItem(name, size, el) {
-        size = size || '';
+    function removeItem(identifier, size, el) {
+        size = trimCartValue(size);
         if (el) {
             el.classList.add('removing');
             el.style.maxHeight = el.scrollHeight + 'px';
@@ -1095,13 +1190,13 @@ if (mobileMenuToggle) {
                 el.style.maxHeight = '0';
             });
             setTimeout(() => {
-                cart = cart.filter(i => !(i.name === name && (i.size || '') === size));
+                cart = cart.filter(i => !(getCartIdentifier(i) === identifier && (i.size || '') === size));
                 saveCart();
                 updateBadge();
                 renderCart();
             }, 400);
         } else {
-            cart = cart.filter(i => !(i.name === name && (i.size || '') === size));
+            cart = cart.filter(i => !(getCartIdentifier(i) === identifier && (i.size || '') === size));
             saveCart();
             updateBadge();
             renderCart();
@@ -1109,22 +1204,22 @@ if (mobileMenuToggle) {
     }
 
     // ── Update quantity ──
-    function updateQty(name, size, delta) {
-        size = size || '';
-        const item = cart.find(i => i.name === name && (i.size || '') === size);
+    function updateQty(identifier, size, delta) {
+        size = trimCartValue(size);
+        const item = cart.find(i => getCartIdentifier(i) === identifier && (i.size || '') === size);
         if (!item) return;
         item.quantity += delta;
         if (item.quantity <= 0) {
-            const key = name + '||' + size;
+            const key = getCartKey(identifier, size);
             const el = body.querySelector(`[data-cart-key="${CSS.escape(key)}"]`);
-            removeItem(name, size, el);
+            removeItem(identifier, size, el);
             return;
         }
         saveCart();
         updateBadge();
 
         // Animate the quantity display instead of full re-render
-        const key = name + '||' + size;
+        const key = getCartKey(identifier, size);
         const el = body.querySelector(`[data-cart-key="${CSS.escape(key)}"]`);
         if (el) {
             const qtyEl = el.querySelector('.cart-qty-display');
@@ -1171,9 +1266,10 @@ if (mobileMenuToggle) {
                 ? `<img src="${item.image}" alt="${item.name}" class="cart-item-img">`
                 : `<div class="cart-item-img-placeholder"><i class="fas fa-image"></i></div>`;
             const sizeHTML = item.size ? `<span class="cart-item-size">Size: ${item.size}</span>` : '';
-            const cartKey = item.name + '||' + (item.size || '');
+            const identifier = getCartIdentifier(item);
+            const cartKey = getCartKey(identifier, item.size || '');
             return `
-                <div class="cart-item" style="animation-delay:${idx * 0.09}s" data-name="${item.name}" data-size="${item.size || ''}" data-cart-key="${cartKey}">
+                <div class="cart-item" style="animation-delay:${idx * 0.09}s" data-name="${item.name}" data-slug="${item.slug || ''}" data-size="${item.size || ''}" data-cart-key="${cartKey}">
                     ${imgHTML}
                     <div class="cart-item-details">
                         <p class="cart-item-name">${item.name}</p>
@@ -1191,33 +1287,53 @@ if (mobileMenuToggle) {
 
         // Attach event listeners
         body.querySelectorAll('.cart-item').forEach(el => {
-            const name = el.dataset.name;
+            const identifier = el.dataset.slug || el.dataset.name;
             const size = el.dataset.size || '';
-            el.querySelector('[data-action="minus"]').addEventListener('click', () => updateQty(name, size, -1));
-            el.querySelector('[data-action="plus"]').addEventListener('click', () => updateQty(name, size, 1));
-            el.querySelector('.cart-item-remove').addEventListener('click', () => removeItem(name, size, el));
+            el.querySelector('[data-action="minus"]').addEventListener('click', () => updateQty(identifier, size, -1));
+            el.querySelector('[data-action="plus"]').addEventListener('click', () => updateQty(identifier, size, 1));
+            el.querySelector('.cart-item-remove').addEventListener('click', () => removeItem(identifier, size, el));
         });
     }
 
     // ── Wire up all add-to-cart buttons ──
-    document.querySelectorAll('.add-to-cart').forEach(btn => {
-        btn.addEventListener('click', function (e) {
-            e.preventDefault();
-            e.stopPropagation();
-            const name = this.dataset.product;
-            const price = this.dataset.price;
-            // Try to grab the image from the sibling or parent
-            let image = this.dataset.image || '';
-            if (!image) {
-                const card = this.closest('.showcase-item, .collection-card, .featured-card, .product-card');
-                if (card) {
-                    const img = card.querySelector('img');
-                    if (img) image = img.src;
+    function bindAddToCartButtons(scope) {
+        scope.querySelectorAll('.add-to-cart').forEach(btn => {
+            if (btn.dataset.cartBound === 'true') return;
+            btn.dataset.cartBound = 'true';
+            btn.addEventListener('click', function (e) {
+                e.preventDefault();
+                e.stopPropagation();
+                const name = this.dataset.product;
+                const price = this.dataset.price;
+                const size = (this.dataset.size || '').trim();
+                const slug = (this.dataset.slug || '').trim();
+                const requiresSize = (this.dataset.requiresSize || '').toLowerCase() === 'true';
+                const productUrl = this.dataset.productUrl || '';
+                // Try to grab the image from the sibling or parent
+                let image = this.dataset.image || '';
+                if (!image) {
+                    const card = this.closest('.showcase-item, .collection-card, .featured-card, .product-card');
+                    if (card) {
+                        const img = card.querySelector('img');
+                        if (img) image = img.src;
+                    }
                 }
-            }
-            addToCart(name, price, image);
+                if (requiresSize && !size) {
+                    if (productUrl) {
+                        window.location.href = `${productUrl}#sizeOptions`;
+                    } else {
+                        showToast('Please select a size on the product page.');
+                    }
+                    return;
+                }
+                addToCart(name, price, image, size, slug);
+            });
         });
-    });
+    }
+
+    window.bindAddToCartButtons = bindAddToCartButtons;
+
+    bindAddToCartButtons(document);
 
     // ── Initialize on load ──
     updateBadge();
@@ -1225,11 +1341,13 @@ if (mobileMenuToggle) {
     const oldCart = localStorage.getItem('cart');
     if (oldCart && cart.length === 0) {
         try {
-            cart = JSON.parse(oldCart);
+            cart = JSON.parse(oldCart).map(normalizeCartItem).filter(Boolean);
             saveCart();
             localStorage.removeItem('cart');
             updateBadge();
-        } catch (e) { /* ignore */ }
+        } catch (e) {
+            localStorage.removeItem('cart');
+        }
     }
 })();
 

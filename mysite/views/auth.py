@@ -1,6 +1,5 @@
 """Authentication views — login, logout, Google OAuth, Facebook OAuth."""
 
-import re
 import json
 import logging
 import urllib.request
@@ -12,7 +11,7 @@ from django.contrib.auth.models import User
 from django.contrib import messages
 from django.conf import settings as django_settings
 from store.models import UserProfile
-from .helpers import (normalize_phone, get_otp, clear_otp,
+from .helpers import (normalize_phone, get_otp, clear_otp, get_or_create_phone_user,
                       check_login_rate_limit, record_login_failure,
                       clear_login_failures)
 
@@ -164,31 +163,7 @@ def customer_login(request):
             else:
                 # OTP valid — find or create user by phone
                 clear_otp(phone, raw_phone)
-                profile = UserProfile.objects.filter(phone=phone).select_related('user').first()
-                if profile:
-                    user = profile.user
-                    phone_digits = re.sub(r'[^\\d]', '', phone)[-10:]
-                    if (user.username.startswith('user_') or user.username.startswith('phone_')) and len(phone_digits) == 10:
-                        if not User.objects.filter(username=phone_digits).exclude(pk=user.pk).exists():
-                            user.username = phone_digits
-                            user.save(update_fields=['username'])
-                else:
-                    phone_digits = re.sub(r'[^\d]', '', phone)[-10:]
-                    phone_username = f'phone_{phone}'
-                    user = User.objects.filter(username=phone_username).first()
-                    if user:
-                        user.username = phone_digits
-                        user.save(update_fields=['username'])
-                    if not user:
-                        user = User.objects.filter(username=phone_digits).first()
-                    if not user:
-                        user = User.objects.create_user(username=phone_digits)
-                        user.set_unusable_password()
-                        user.save()
-                    prof, _ = UserProfile.objects.get_or_create(user=user, defaults={'phone': phone})
-                    if not prof.phone:
-                        prof.phone = phone
-                        prof.save(update_fields=['phone'])
+                user = get_or_create_phone_user(phone)
                 if user.is_superuser or user.is_staff:
                     err = 'Please use the admin panel to sign in.'
                     if is_ajax:

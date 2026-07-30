@@ -63,7 +63,3 @@ python manage.py runserver
 ├── media/               # User-uploaded content (not tracked)
 └── manage.py
 ```
-
-## License
-
-This project is for educational purposes.

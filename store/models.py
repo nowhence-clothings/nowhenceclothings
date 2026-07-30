@@ -766,8 +766,10 @@ class Coupon(models.Model):
         if order_total < self.min_order_amount:
             return False, f'Minimum order of ₹{self.min_order_amount:.0f} required.'
         if user and self.per_user_limit:
-            user_uses = Order.objects.filter(user=user, coupon_code=self.code).exclude(
-                status='cancelled'
+            user_uses = Order.objects.filter(
+                user=user,
+                coupon_code__iexact=self.code,
+                status__in=('confirmed', 'shipped', 'out_for_delivery', 'delivered'),
             ).count()
             if user_uses >= self.per_user_limit:
                 return False, 'You have already used this coupon.'

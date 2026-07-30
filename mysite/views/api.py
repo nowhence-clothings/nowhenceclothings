@@ -4,7 +4,6 @@ import json
 import random
 from django.http import JsonResponse
 from django.db.models import Q
-from django.views.decorators.csrf import csrf_exempt
 from store.models import (
     FeaturedCollection, ShowcaseProduct, CollectionCard, PincodeAvailability,
 )
@@ -113,7 +112,6 @@ def check_pincode_availability(request):
         })
 
 
-@csrf_exempt
 def send_otp(request):
     """Generate a 6-digit OTP for a phone number.
     Currently returns demo OTP in response.

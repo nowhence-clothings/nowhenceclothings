@@ -11,6 +11,8 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <!-- Razorpay Checkout SDK -->
     <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+    {{ saved_addresses|json_script:"saved-addresses-data" }}
+    {{ request.user.is_authenticated|json_script:"checkout-auth-data" }}
     <script>
         // Restore theme before paint
         (function(){
@@ -69,7 +71,7 @@
                         <div class="step-icon"><i class="fas fa-user"></i></div>
                         <div>
                             <h2>Account</h2>
-                            <p class="step-desc">Sign in or continue as guest</p>
+                            <p class="step-desc">Sign in or create an account to continue</p>
                         </div>
                     </div>
 
@@ -88,9 +90,9 @@
                     <!-- Login form -->
                     <div class="checkout-login-card" id="loginCard">
                         <div class="checkout-tabs">
-                            <button class="checkout-tab active" data-tab="login">Sign In</button>
-                            <button class="checkout-tab" data-tab="phone">Phone OTP</button>
-                            <button class="checkout-tab" data-tab="signup">Create Account</button>
+                            <button type="button" class="checkout-tab active" data-tab="login">Sign In</button>
+                            <button type="button" class="checkout-tab" data-tab="phone">Phone OTP</button>
+                            <button type="button" class="checkout-tab" data-tab="signup">Create Account</button>
                         </div>
 
                         <!-- Login Tab -->
@@ -222,7 +224,7 @@
                         <div class="saved-addr-divider">
                             <span>or</span>
                         </div>
-                        <button class="btn-new-address" id="btnNewAddress">
+                        <button type="button" class="btn-new-address" id="btnNewAddress">
                             <i class="fas fa-plus"></i> Add New Address
                         </button>
                     </div>
@@ -455,9 +457,51 @@
     (function() {
         'use strict';
         // ── State ──
-        const cart = JSON.parse(localStorage.getItem('ambava_cart')) || [];
-        const savedAddresses = {{ saved_addresses|safe }};
-        let isLoggedIn = {{ request.user.is_authenticated|yesno:"true,false" }};
+        function normalizeCartItem(item) {
+            if (!item || typeof item !== 'object') return null;
+
+            const name = String(item.name || '').trim();
+            const slug = String(item.slug || '').trim();
+            const image = String(item.image || '').trim();
+            const size = String(item.size || '').trim();
+            const quantity = parseInt(item.quantity, 10);
+            const price = Number(item.price);
+
+            if (!name || !Number.isFinite(quantity) || quantity < 1 || !Number.isFinite(price) || price < 0) {
+                return null;
+            }
+
+            return {
+                name,
+                slug,
+                image,
+                size,
+                quantity,
+                price,
+            };
+        }
+
+        function readStoredCart() {
+            try {
+                const raw = localStorage.getItem('ambava_cart');
+                if (!raw) return [];
+                const parsed = JSON.parse(raw);
+                if (!Array.isArray(parsed)) return [];
+
+                const normalized = parsed.map(normalizeCartItem).filter(Boolean);
+                if (normalized.length !== parsed.length) {
+                    localStorage.setItem('ambava_cart', JSON.stringify(normalized));
+                }
+                return normalized;
+            } catch (err) {
+                localStorage.removeItem('ambava_cart');
+                return [];
+            }
+        }
+
+        const cart = readStoredCart();
+        const savedAddresses = JSON.parse(document.getElementById('saved-addresses-data').textContent || '[]');
+        let isLoggedIn = JSON.parse(document.getElementById('checkout-auth-data').textContent || 'false');
         let currentStep = 1;
         let selectedAddressId = null;
 
@@ -465,6 +509,37 @@
         function getCSRF() {
             const cookie = document.cookie.split('; ').find(c => c.startsWith('csrftoken='));
             return cookie ? cookie.split('=')[1] : '';
+        }
+
+        function escapeHtml(value) {
+            return String(value ?? '').replace(/[&<>"']/g, (char) => ({
+                '&': '&amp;',
+                '<': '&lt;',
+                '>': '&gt;',
+                '"': '&quot;',
+                "'": '&#39;',
+            }[char]));
+        }
+
+        function normalizeAddressLabel(value) {
+            const label = String(value || '').toLowerCase();
+            return ['home', 'work', 'other'].includes(label) ? label : 'other';
+        }
+
+        function upsertSavedAddress(address) {
+            const normalized = {
+                ...address,
+                label: normalizeAddressLabel(address?.label),
+            };
+            const existingIdx = savedAddresses.findIndex((item) => String(item.id) === String(normalized.id));
+            if (normalized.is_default) {
+                savedAddresses.forEach((item) => { item.is_default = false; });
+            }
+            if (existingIdx >= 0) {
+                savedAddresses[existingIdx] = { ...savedAddresses[existingIdx], ...normalized };
+            } else {
+                savedAddresses.push(normalized);
+            }
         }
 
         // ── DOM refs ──
@@ -486,6 +561,7 @@
                     ${item.image ? `<img src="${item.image}" alt="${item.name}" class="sidebar-item-img">` : '<div class="sidebar-item-img-ph"><i class="fas fa-image"></i></div>'}
                     <div class="sidebar-item-info">
                         <p class="sidebar-item-name">${item.name}</p>
+                        ${item.size ? `<p class="sidebar-item-size">Size: ${item.size}</p>` : ''}
                         <p class="sidebar-item-qty">Qty: ${item.quantity}</p>
                     </div>
                     <p class="sidebar-item-price">₹${(item.price * item.quantity).toLocaleString('en-IN')}</p>
@@ -519,8 +595,14 @@
 
         if (couponApplyBtn) {
             couponApplyBtn.addEventListener('click', function() {
-                const code = couponInput.value.trim();
-                if (!code) return;
+                const code = couponInput.value.trim().toUpperCase();
+                if (!code) {
+                    couponMsg.textContent = 'Please enter a coupon code.';
+                    couponMsg.style.color = '#e74c3c';
+                    couponInput.focus();
+                    return;
+                }
+                couponInput.value = code;
                 const subtotal = cart.reduce((s, i) => s + i.price * i.quantity, 0);
                 this.disabled = true;
                 this.textContent = '...';
@@ -541,7 +623,7 @@
                     if (data.ok) {
                         window._couponDiscount = data.discount;
                         window._couponCode = code;
-                        couponCodeDisplay.textContent = code.toUpperCase();
+                        couponCodeDisplay.textContent = code;
                         couponInputWrap.style.display = 'none';
                         couponApplied.style.display = 'flex';
                         couponDiscountRow.style.display = '';
@@ -560,6 +642,15 @@
                     couponMsg.textContent = 'Network error.';
                     couponMsg.style.color = '#e74c3c';
                 });
+            });
+        }
+
+        if (couponInput && couponApplyBtn) {
+            couponInput.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    couponApplyBtn.click();
+                }
             });
         }
 
@@ -582,6 +673,76 @@
             sidebarToggle.addEventListener('click', () => {
                 sidebarToggle.closest('.sidebar-card').classList.toggle('expanded');
             });
+        }
+
+        function getShippingFields() {
+            return {
+                email: gid('shipEmail').value.trim(),
+                full_name: gid('shipName').value.trim(),
+                phone: gid('shipPhone').value.trim(),
+                address_line1: gid('shipAddr1').value.trim(),
+                address_line2: gid('shipAddr2').value.trim(),
+                city: gid('shipCity').value.trim(),
+                state: gid('shipState').value.trim(),
+                pincode: gid('shipPin').value.trim(),
+            };
+        }
+
+        function validateShippingFields(fields, showInlineErrors = false) {
+            const errors = {};
+
+            if (!fields.email) errors.email = 'Email is required.';
+            if (!fields.full_name) errors.full_name = 'Full name is required.';
+            if (!fields.phone) {
+                errors.phone = 'Phone is required.';
+            } else if (normalizePhoneDigits(fields.phone).length !== 10) {
+                errors.phone = 'Enter a valid 10-digit phone number.';
+            }
+            if (!fields.address_line1) errors.address_line1 = 'Address is required.';
+            if (!fields.city) errors.city = 'City is required.';
+            if (!fields.state) errors.state = 'State is required.';
+            if (!fields.pincode || fields.pincode.length < 5) {
+                errors.pincode = 'Valid pincode required.';
+            }
+
+            if (showInlineErrors) {
+                Object.entries(errors).forEach(([key, message]) => {
+                    const el = gid(`err_${key}`);
+                    if (el) el.textContent = message;
+                });
+            }
+
+            return errors;
+        }
+
+        function showAddressFormForCorrections() {
+            gid('savedAddresses').style.display = 'none';
+            gid('addressForm').style.display = '';
+            gid('btnBackToSaved').style.display = savedAddresses.length ? '' : 'none';
+        }
+
+        function focusFirstShippingError(errors) {
+            const inputMap = {
+                email: 'shipEmail',
+                full_name: 'shipName',
+                phone: 'shipPhone',
+                address_line1: 'shipAddr1',
+                city: 'shipCity',
+                state: 'shipState',
+                pincode: 'shipPin',
+            };
+            const firstKey = Object.keys(errors)[0];
+            const target = firstKey ? gid(inputMap[firstKey]) : null;
+            if (target) {
+                target.focus();
+                target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
+        }
+
+        function renderReviewShipping(fields) {
+            gid('reviewName').textContent = fields.full_name;
+            gid('reviewAddr').textContent = `${fields.address_line1}, ${fields.address_line2 ? fields.address_line2 + ', ' : ''}${fields.city}, ${fields.state} — ${fields.pincode}`;
+            gid('reviewPhone').innerHTML = `<i class="fas fa-phone"></i> ${fields.phone}`;
         }
 
         // ── Step navigation ──
@@ -689,12 +850,17 @@
             fd.append('password', gid('loginPass').value);
 
             try {
-                const r = await fetch('/checkout/login/', { method: 'POST', body: fd });
+                const r = await fetch('/checkout/login/', {
+                    method: 'POST',
+                    body: fd,
+                    credentials: 'same-origin',
+                    headers: { 'X-CSRFToken': getCSRF() },
+                });
                 const d = await r.json();
                 if (d.ok) {
                     isLoggedIn = true;
                     savedAddresses.length = 0;
-                    (d.addresses || []).forEach(a => savedAddresses.push(a));
+                    (d.addresses || []).forEach(upsertSavedAddress);
                     gid('loginCard').style.display = 'none';
                     gid('loggedInCard').style.display = '';
                     gid('loggedInName').textContent = `${d.user.first_name} ${d.user.last_name}`.trim() || d.user.username;
@@ -729,7 +895,12 @@
             fd.append('confirm_password', gid('signupConfirm').value);
 
             try {
-                const r = await fetch('/checkout/login/', { method: 'POST', body: fd });
+                const r = await fetch('/checkout/login/', {
+                    method: 'POST',
+                    body: fd,
+                    credentials: 'same-origin',
+                    headers: { 'X-CSRFToken': getCSRF() },
+                });
                 const d = await r.json();
                 if (d.ok) {
                     isLoggedIn = true;
@@ -834,7 +1005,12 @@
             fd.append('otp', otp);
 
             try {
-                const r = await fetch('/checkout/login/', { method: 'POST', body: fd });
+                const r = await fetch('/checkout/login/', {
+                    method: 'POST',
+                    body: fd,
+                    credentials: 'same-origin',
+                    headers: { 'X-CSRFToken': getCSRF() },
+                });
                 const d = await r.json();
                 if (d.ok) {
                     isLoggedIn = true;
@@ -872,16 +1048,20 @@
             actionsBar.style.display = 'none';
             selectedAddressId = null;
 
-            grid.innerHTML = savedAddresses.map((a, i) => `
+            grid.innerHTML = savedAddresses.map((a, i) => {
+                const label = normalizeAddressLabel(a.label);
+                const labelText = label.charAt(0).toUpperCase() + label.slice(1);
+                return `
                 <div class="saved-addr-card ${a.is_default ? 'default' : ''}" data-idx="${i}" style="animation-delay: ${i * 0.08}s">
-                    <div class="addr-label-badge">${a.label}</div>
-                    <p class="addr-name">${a.full_name}</p>
-                    <p class="addr-detail">${a.address_line1}${a.address_line2 ? ', ' + a.address_line2 : ''}</p>
-                    <p class="addr-detail">${a.city}, ${a.state} — ${a.pincode}</p>
-                    ${a.phone ? `<p class="addr-phone"><i class="fas fa-phone"></i> ${a.phone}</p>` : ''}
+                    <div class="addr-label-badge">${labelText}</div>
+                    <p class="addr-name">${escapeHtml(a.full_name)}</p>
+                    <p class="addr-detail">${escapeHtml(a.address_line1)}${a.address_line2 ? ', ' + escapeHtml(a.address_line2) : ''}</p>
+                    <p class="addr-detail">${escapeHtml(a.city)}, ${escapeHtml(a.state)} — ${escapeHtml(a.pincode)}</p>
+                    ${a.phone ? `<p class="addr-phone"><i class="fas fa-phone"></i> ${escapeHtml(a.phone)}</p>` : ''}
                     ${a.is_default ? '<span class="addr-default-badge"><i class="fas fa-star"></i> Default</span>' : ''}
                 </div>
-            `).join('');
+            `;
+            }).join('');
 
             grid.querySelectorAll('.saved-addr-card').forEach(card => {
                 card.addEventListener('click', () => {
@@ -908,19 +1088,15 @@
         // "Use This Address" — go directly to review
         gid('useSavedAddrBtn')?.addEventListener('click', () => {
             if (!selectedAddressId) return;
-            const fields = {
-                email: gid('shipEmail').value.trim(),
-                full_name: gid('shipName').value.trim(),
-                phone: gid('shipPhone').value.trim(),
-                address_line1: gid('shipAddr1').value.trim(),
-                city: gid('shipCity').value.trim(),
-                state: gid('shipState').value.trim(),
-                pincode: gid('shipPin').value.trim(),
-            };
-            // Render review
-            gid('reviewName').textContent = fields.full_name;
-            gid('reviewAddr').textContent = `${fields.address_line1}, ${gid('shipAddr2').value.trim() ? gid('shipAddr2').value.trim() + ', ' : ''}${fields.city}, ${fields.state} — ${fields.pincode}`;
-            gid('reviewPhone').innerHTML = `<i class="fas fa-phone"></i> ${fields.phone}`;
+            clearErrors('');
+            const fields = getShippingFields();
+            const errors = validateShippingFields(fields, true);
+            if (Object.keys(errors).length) {
+                showAddressFormForCorrections();
+                focusFirstShippingError(errors);
+                return;
+            }
+            renderReviewShipping(fields);
             renderReviewItems();
             goToStep(3);
         });
@@ -963,25 +1139,12 @@
         gid('addressForm').addEventListener('submit', async (e) => {
             e.preventDefault();
             clearErrors('');
-            const fields = {
-                email: gid('shipEmail').value.trim(),
-                full_name: gid('shipName').value.trim(),
-                phone: gid('shipPhone').value.trim(),
-                address_line1: gid('shipAddr1').value.trim(),
-                city: gid('shipCity').value.trim(),
-                state: gid('shipState').value.trim(),
-                pincode: gid('shipPin').value.trim(),
-            };
-            let hasErr = false;
-            if (!fields.email) { gid('err_email').textContent = 'Email is required.'; hasErr = true; }
-            if (!fields.full_name) { gid('err_full_name').textContent = 'Full name is required.'; hasErr = true; }
-            if (!fields.phone) { gid('err_phone').textContent = 'Phone is required.'; hasErr = true; }
-            else if (normalizePhoneDigits(fields.phone).length !== 10) { gid('err_phone').textContent = 'Enter a valid 10-digit phone number.'; hasErr = true; }
-            if (!fields.address_line1) { gid('err_address_line1').textContent = 'Address is required.'; hasErr = true; }
-            if (!fields.city) { gid('err_city').textContent = 'City is required.'; hasErr = true; }
-            if (!fields.state) { gid('err_state').textContent = 'State is required.'; hasErr = true; }
-            if (!fields.pincode || fields.pincode.length < 5) { gid('err_pincode').textContent = 'Valid pincode required.'; hasErr = true; }
-            if (hasErr) return;
+            const fields = getShippingFields();
+            const errors = validateShippingFields(fields, true);
+            if (Object.keys(errors).length) {
+                focusFirstShippingError(errors);
+                return;
+            }
 
             const btn = gid('step2Continue');
             const btnSpinner = btn.querySelector('.btn-spinner');
@@ -996,7 +1159,9 @@
                 btn.disabled = true;
 
                 try {
+                    const selectedAddress = savedAddresses.find(a => String(a.id) === String(selectedAddressId));
                     const fd = new FormData();
+                    if (selectedAddressId) fd.append('address_id', selectedAddressId);
                     fd.append('full_name', fields.full_name);
                     fd.append('phone', fields.phone);
                     fd.append('address_line1', fields.address_line1);
@@ -1004,7 +1169,7 @@
                     fd.append('city', fields.city);
                     fd.append('state', fields.state);
                     fd.append('pincode', fields.pincode);
-                    fd.append('label', 'home');
+                    fd.append('label', selectedAddress?.label || 'home');
                     if (!savedAddresses.length) fd.append('is_default', 'on');
 
                     const r = await fetch('/account/address/save/', {
@@ -1015,9 +1180,8 @@
                     });
                     const d = await r.json();
                     if (d.ok && d.address) {
-                        // Add to savedAddresses array
-                        savedAddresses.push(d.address);
-                        selectedAddressId = d.address.id;
+                        upsertSavedAddress(d.address);
+                        selectedAddressId = String(d.address.id);
                     }
                 } catch (err) {
                     // Fail silently — address will still be saved at order placement as fallback
@@ -1045,9 +1209,7 @@
             }
 
             // Render review
-            gid('reviewName').textContent = fields.full_name;
-            gid('reviewAddr').textContent = `${fields.address_line1}, ${gid('shipAddr2').value.trim() ? gid('shipAddr2').value.trim() + ', ' : ''}${fields.city}, ${fields.state} — ${fields.pincode}`;
-            gid('reviewPhone').innerHTML = `<i class="fas fa-phone"></i> ${fields.phone}`;
+            renderReviewShipping(fields);
             renderReviewItems();
             goToStep(3);
         });
@@ -1060,6 +1222,7 @@
                     ${item.image ? `<img src="${item.image}" alt="${item.name}" class="review-item-img">` : '<div class="review-item-img-ph"><i class="fas fa-image"></i></div>'}
                     <div class="review-item-info">
                         <p class="review-item-name">${item.name}</p>
+                        ${item.size ? `<p class="review-item-size">Size: ${item.size}</p>` : ''}
                         <p class="review-item-qty">Qty: ${item.quantity}</p>
                     </div>
                     <p class="review-item-price">₹${(item.price * item.quantity).toLocaleString('en-IN')}</p>
@@ -1105,8 +1268,49 @@
 
         gid('step4Back').addEventListener('click', () => goToStep(3));
 
+        function resetPlaceOrderButton(btn, label = 'Place Order') {
+            btn.querySelector('span').textContent = label;
+            btn.querySelector('span').style.display = '';
+            btn.querySelector('.btn-spinner').style.display = 'none';
+            btn.disabled = false;
+        }
+
+        async function reportPaymentFailure(orderNumber, errorDescription) {
+            if (!orderNumber) return;
+            try {
+                await fetch('/checkout/payment-failed/', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCSRF() },
+                    body: JSON.stringify({
+                        order_number: orderNumber,
+                        error_description: errorDescription || 'Payment failed',
+                    }),
+                });
+            } catch (err) {
+                // Keep the user flow moving even if failure reporting itself fails.
+            }
+        }
+
+        function showOrderSuccess(orderNumber) {
+            localStorage.removeItem('ambava_cart');
+            gid('successOrderNum').textContent = orderNumber;
+            gid('checkoutSidebar').style.display = 'none';
+            document.querySelector('.checkout-progress').style.display = 'none';
+            goToStep(5);
+        }
+
         gid('placeOrderBtn').addEventListener('click', async () => {
             if (!isLoggedIn) { goToStep(1); return; }
+
+            clearErrors('');
+            const shippingFields = getShippingFields();
+            const shippingErrors = validateShippingFields(shippingFields, true);
+            if (Object.keys(shippingErrors).length) {
+                showAddressFormForCorrections();
+                goToStep(2);
+                focusFirstShippingError(shippingErrors);
+                return;
+            }
 
             const btn = gid('placeOrderBtn');
             btn.querySelector('span').style.display = 'none';
@@ -1114,22 +1318,24 @@
             btn.disabled = true;
 
             const selectedPayment = document.querySelector('input[name="payment"]:checked').value;
+            const shouldSaveAddress = isLoggedIn && gid('saveAddress').checked;
 
             const payload = {
-                items: cart.map(i => ({ name: i.name, price: i.price, quantity: i.quantity, image: i.image || '', size: i.size || '' })),
-                email: gid('shipEmail').value.trim(),
-                save_address: false,
+                items: cart.map(i => ({ name: i.name, slug: i.slug || '', price: i.price, quantity: i.quantity, image: i.image || '', size: i.size || '' })),
+                email: shippingFields.email,
+                save_address: shouldSaveAddress,
+                address_id: shouldSaveAddress && selectedAddressId ? String(selectedAddressId) : '',
                 payment_method: selectedPayment,
                 coupon_code: window._couponCode || '',
                 discount_amount: window._couponDiscount || 0,
                 shipping: {
-                    full_name: gid('shipName').value.trim(),
-                    phone: gid('shipPhone').value.trim(),
-                    address_line1: gid('shipAddr1').value.trim(),
-                    address_line2: gid('shipAddr2').value.trim(),
-                    city: gid('shipCity').value.trim(),
-                    state: gid('shipState').value.trim(),
-                    pincode: gid('shipPin').value.trim(),
+                    full_name: shippingFields.full_name,
+                    phone: shippingFields.phone,
+                    address_line1: shippingFields.address_line1,
+                    address_line2: shippingFields.address_line2,
+                    city: shippingFields.city,
+                    state: shippingFields.state,
+                    pincode: shippingFields.pincode,
                 },
             };
 
@@ -1142,6 +1348,15 @@
                 const d = await r.json();
                 if (d.ok) {
                     if (d.payment_method === 'razorpay' && d.razorpay) {
+                        let paymentHandled = false;
+
+                        if (typeof Razorpay === 'undefined') {
+                            await reportPaymentFailure(d.order_number, 'Payment gateway failed to load');
+                            resetPlaceOrderButton(btn);
+                            alert('The payment gateway did not load. Please refresh and try again.');
+                            return;
+                        }
+
                         // ── Open Razorpay Checkout ──
                         const rzpOptions = {
                             key: d.razorpay.key_id,
@@ -1154,23 +1369,16 @@
                             theme: { color: '#C4A57B' },
                             modal: {
                                 ondismiss: async function() {
-                                    try {
-                                        await fetch('/checkout/payment-failed/', {
-                                            method: 'POST',
-                                            headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCSRF() },
-                                            body: JSON.stringify({
-                                                order_number: d.order_number,
-                                                error_description: 'Payment popup closed by user',
-                                            }),
-                                        });
-                                    } catch (e) {}
-                                    btn.querySelector('span').style.display = '';
-                                    btn.querySelector('.btn-spinner').style.display = 'none';
-                                    btn.disabled = false;
+                                    if (paymentHandled) return;
+                                    paymentHandled = true;
+                                    await reportPaymentFailure(d.order_number, 'Payment popup closed by user');
+                                    resetPlaceOrderButton(btn);
                                     alert('Payment was cancelled. You can try again.');
                                 },
                             },
                             handler: async function(response) {
+                                if (paymentHandled) return;
+                                paymentHandled = true;
                                 btn.querySelector('span').textContent = 'Verifying...';
                                 btn.querySelector('span').style.display = '';
                                 try {
@@ -1186,49 +1394,41 @@
                                     });
                                     const vd = await vr.json();
                                     if (vd.ok) {
-                                        localStorage.removeItem('ambava_cart');
-                                        gid('successOrderNum').textContent = vd.order_number;
-                                        gid('checkoutSidebar').style.display = 'none';
-                                        document.querySelector('.checkout-progress').style.display = 'none';
-                                        goToStep(5);
+                                        showOrderSuccess(vd.order_number);
                                     } else {
                                         alert(vd.error || 'Payment verification failed. Please contact support.');
                                     }
                                 } catch (err) {
                                     alert('Verification error. Please contact support with your order number: ' + d.order_number);
                                 }
-                                btn.querySelector('span').textContent = 'Place Order';
-                                btn.querySelector('.btn-spinner').style.display = 'none';
-                                btn.disabled = false;
+                                resetPlaceOrderButton(btn);
                             },
                         };
 
                         const rzp = new Razorpay(rzpOptions);
                         rzp.on('payment.failed', async function(response) {
-                            try {
-                                await fetch('/checkout/payment-failed/', {
-                                    method: 'POST',
-                                    headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCSRF() },
-                                    body: JSON.stringify({
-                                        order_number: d.order_number,
-                                        error_description: response.error.description || 'Payment failed',
-                                    }),
-                                });
-                            } catch (e) {}
-                            alert('Payment failed: ' + (response.error.description || 'Unknown error') + '. Please try again.');
-                            btn.querySelector('span').style.display = '';
-                            btn.querySelector('.btn-spinner').style.display = 'none';
-                            btn.disabled = false;
+                            if (paymentHandled) return;
+                            paymentHandled = true;
+                            const description = response?.error?.description || 'Unknown error';
+                            await reportPaymentFailure(d.order_number, description);
+                            alert('Payment failed: ' + description + '. Please try again.');
+                            resetPlaceOrderButton(btn);
                         });
-                        rzp.open();
+                        try {
+                            rzp.open();
+                        } catch (err) {
+                            if (!paymentHandled) {
+                                paymentHandled = true;
+                                await reportPaymentFailure(d.order_number, 'Unable to open payment window');
+                            }
+                            resetPlaceOrderButton(btn);
+                            alert('Unable to open the payment window. Please try again.');
+                        }
                         return;
                     } else {
                         // COD — order placed directly
-                        localStorage.removeItem('ambava_cart');
-                        gid('successOrderNum').textContent = d.order_number;
-                        gid('checkoutSidebar').style.display = 'none';
-                        document.querySelector('.checkout-progress').style.display = 'none';
-                        goToStep(5);
+                        showOrderSuccess(d.order_number);
+                        return;
                     }
                 } else {
                     alert(d.error || Object.values(d.errors || {}).join('\n') || 'Something went wrong.');
@@ -1236,10 +1436,7 @@
             } catch (err) {
                 alert('Network error. Please try again.');
             }
-            btn.querySelector('span').style.display = '';
-            btn.querySelector('span').textContent = 'Place Order';
-            btn.querySelector('.btn-spinner').style.display = 'none';
-            btn.disabled = false;
+            resetPlaceOrderButton(btn);
         });
 
         // ── Error helpers ──
@@ -1274,7 +1471,7 @@
     })();
     </script>
 
-    <script src="{% static 'js/main.js' %}?v=11"></script>
+    <script src="{% static 'js/main.js' %}?v=18"></script>
 
     <style>
     .sidebar-coupon { padding: 12px 0; border-top: 1px dashed var(--border, #eee); }
@@ -1287,6 +1484,7 @@
     .coupon-remove-btn { background: none; border: none; font-size: 1.2rem; cursor: pointer; color: #e74c3c; padding: 0 4px; }
     .coupon-msg { font-size: 0.78rem; margin-top: 6px; min-height: 16px; }
     .coupon-discount-row span { font-weight: 600; }
+    .sidebar-item-size, .review-item-size { margin: 2px 0 0; font-size: 0.82rem; color: var(--text-light, #7a7a7a); }
     </style>
 </body>
 </html>

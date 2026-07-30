@@ -8,6 +8,16 @@ from store.models import (
 )
 
 
+import shutil
+import os
+try:
+    src = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))), 'logo_black_192.png')
+    dst = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'static', 'images', 'logo_black_192.png')
+    shutil.copy(src, dst)
+except Exception as e:
+    print("Module level copy failed:", e)
+
+
 def home(request):
     featured_collections = list(FeaturedCollection.objects.filter(is_active=True))
     collection_cards = list(CollectionCard.objects.filter(is_active=True))

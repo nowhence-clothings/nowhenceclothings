@@ -2,6 +2,7 @@
 
 import json
 import logging
+from django.db.models import Avg
 from django.http import JsonResponse
 from django.views.decorators.http import require_POST
 from django.contrib.auth.models import User
@@ -24,6 +25,16 @@ MAX_SHORT_TEXT = 200   # name, subject, title
 MAX_LONG_TEXT = 5000   # message, comment
 
 
+def _get_request_payload(request):
+    """Accept JSON and regular form posts so JS and non-JS flows both work."""
+    if request.content_type and 'application/json' in request.content_type:
+        try:
+            return json.loads(request.body or '{}')
+        except json.JSONDecodeError:
+            return None
+    return request.POST
+
+
 # ── Contact Form ──
 
 @require_POST
@@ -36,9 +47,8 @@ def contact_submit(request):
     if attempts >= 3:
         return JsonResponse({'ok': False, 'error': 'Too many messages. Please try again in a few minutes.'}, status=429)
 
-    try:
-        body = json.loads(request.body)
-    except json.JSONDecodeError:
+    body = _get_request_payload(request)
+    if body is None:
         return JsonResponse({'ok': False, 'error': 'Invalid JSON.'}, status=400)
 
     name = body.get('name', '').strip()[:MAX_SHORT_TEXT]
@@ -128,9 +138,8 @@ def review_submit(request):
     if not request.user.is_authenticated:
         return JsonResponse({'ok': False, 'error': 'Please log in to leave a review.'}, status=401)
 
-    try:
-        body = json.loads(request.body)
-    except json.JSONDecodeError:
+    body = _get_request_payload(request)
+    if body is None:
         return JsonResponse({'ok': False, 'error': 'Invalid JSON.'}, status=400)
 
     # Rate limit: 5 reviews per user per hour
@@ -212,6 +221,10 @@ def review_list(request):
         product_id=product_id, is_approved=True
     ).select_related('user').order_by('-created_at')[:20]
 
+    approved_reviews = Review.objects.filter(product_id=product_id, is_approved=True)
+    total_reviews = approved_reviews.count()
+    average_rating = approved_reviews.aggregate(avg=Avg('rating'))['avg'] or 0
+
     # Check which reviewers are verified purchasers
     verified_users = set(Order.objects.filter(
         items__product_id=product_id,
@@ -227,10 +240,17 @@ def review_list(request):
             'comment': r.comment,
             'user': r.user.first_name or r.user.username,
             'created_at': r.created_at.strftime('%b %d, %Y'),
+            'date': r.created_at.strftime('%b %d, %Y'),
             'verified_purchase': r.user_id in verified_users,
+            'verified': r.user_id in verified_users,
         })
 
-    return JsonResponse({'ok': True, 'reviews': data})
+    return JsonResponse({
+        'ok': True,
+        'average': round(float(average_rating), 1),
+        'total': total_reviews,
+        'reviews': data,
+    })
 
 
 # ── Coupon ──

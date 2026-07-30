@@ -243,6 +243,11 @@
     animation: logoFloat 8s ease-in-out infinite;
     transition: filter .6s var(--ease-fluid);
 }
+.login-logo.brand-logo {
+    width: auto !important;
+    height: 35px !important;
+    object-fit: contain;
+}
 .brand-identity:hover .login-logo {
     filter: drop-shadow(0 4px 24px rgba(196,165,123,.35));
 }

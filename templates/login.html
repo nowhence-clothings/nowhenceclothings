@@ -423,7 +423,7 @@
                 <p class="login-note">
                     <i class="fas fa-info-circle"></i>
                     This login is for customers only. Staff members should use the
-                    <a href="/admin/" target="_blank">admin panel</a>.
+                    <a href="{% url 'admin:index' %}" target="_blank">admin panel</a>.
                 </p>
             </div>
         </div>
@@ -1103,6 +1103,16 @@
                 form.querySelectorAll('.login-form-error').forEach(el => el.remove());
             }
 
+            function escapeHtml(value) {
+                return String(value ?? '').replace(/[&<>"']/g, (char) => ({
+                    '&': '&amp;',
+                    '<': '&lt;',
+                    '>': '&gt;',
+                    '"': '&quot;',
+                    "'": '&#39;',
+                }[char]));
+            }
+
             // ── Helper: show inline field error ──
             function showFieldError(form, fieldName, message) {
                 const input = form.querySelector(`[name="${fieldName}"]`);
@@ -1118,7 +1128,7 @@
                     if (field && !field.querySelector('.login-field-error')) {
                         const errEl = document.createElement('div');
                         errEl.className = 'login-field-error';
-                        errEl.innerHTML = `<i class="fas fa-exclamation-circle"></i> ${message}`;
+                        errEl.innerHTML = `<i class="fas fa-exclamation-circle"></i> ${escapeHtml(message)}`;
                         field.appendChild(errEl);
                     }
                 }
@@ -1131,7 +1141,7 @@
                 container.querySelectorAll('.login-form-error').forEach(el => el.remove());
                 const errEl = document.createElement('div');
                 errEl.className = 'login-form-error';
-                errEl.innerHTML = `<i class="fas fa-exclamation-circle"></i> ${message}`;
+                errEl.innerHTML = `<i class="fas fa-exclamation-circle"></i> ${escapeHtml(message)}`;
                 form.insertBefore(errEl, form.firstChild);
                 // Auto-dismiss after 5s
                 setTimeout(() => {
@@ -1147,7 +1157,7 @@
                 if (!container) return;
                 const toast = document.createElement('div');
                 toast.className = 'login-success-toast';
-                toast.innerHTML = `<i class="fas fa-check-circle"></i> ${message}`;
+                toast.innerHTML = `<i class="fas fa-check-circle"></i> ${escapeHtml(message)}`;
                 container.appendChild(toast);
                 requestAnimationFrame(() => toast.classList.add('show'));
             }
@@ -1379,6 +1389,8 @@
     <!-- Splash Cursor -->
     <script>
     (function() {
+        if (window.__ambavaCursorInitialized) return;
+        window.__ambavaCursorInitialized = true;
         const _canvas = document.getElementById('cursor-canvas');
         if (!_canvas) return;
         const _ctx = _canvas.getContext('2d');
@@ -1617,5 +1629,6 @@
         }
     })();
     </script>
+    <script src="{% static 'js/main.js' %}?v=18"></script>
 </body>
 </html>

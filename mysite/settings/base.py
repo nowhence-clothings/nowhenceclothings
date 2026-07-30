@@ -12,6 +12,18 @@ from pathlib import Path
 # ────────────────────────────────────────────────────────────────
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
 
+# Copy the logo_black_192.png file to the static images directory
+try:
+    import shutil
+    src_logo = BASE_DIR / 'logo_black_192.png'
+    dst_logo = BASE_DIR / 'mysite' / 'static' / 'images' / 'logo_black_192.png'
+    if src_logo.exists():
+        dst_logo.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copy(src_logo, dst_logo)
+except Exception as e:
+    pass
+
+
 # Load .env file if it exists (keeps secrets out of source control)
 _env_path = BASE_DIR / '.env'
 if _env_path.is_file():

@@ -1,6 +1,7 @@
 """Account views — profile, addresses, orders, returns."""
 
 import re
+from django.db import transaction
 from django.shortcuts import redirect, render
 from django.http import JsonResponse
 from django.contrib.auth.models import User
@@ -82,6 +83,64 @@ def profile_update(request):
 
 # ── Addresses ──
 
+def _upsert_address_for_user(
+    user,
+    *,
+    full_name,
+    phone='',
+    address_line1,
+    address_line2='',
+    city,
+    state,
+    pincode,
+    label='',
+    address_id='',
+    set_as_default=False,
+    require_existing=False,
+):
+    """Create or update a user's address while keeping a single default address."""
+    with transaction.atomic():
+        addr = None
+        if address_id:
+            addr = Address.objects.select_for_update().filter(pk=address_id, user=user).first()
+            if not addr and require_existing:
+                raise ValueError('Address not found.')
+
+        if not addr:
+            addr = Address(user=user)
+
+        other_addresses = Address.objects.select_for_update().filter(user=user)
+        if addr.pk:
+            other_addresses = other_addresses.exclude(pk=addr.pk)
+
+        existing_default = bool(addr.pk and addr.is_default)
+        should_be_default = set_as_default or existing_default or not other_addresses.exists()
+
+        if should_be_default:
+            other_addresses.update(is_default=False)
+        elif existing_default and not other_addresses.filter(is_default=True).exists():
+            fallback_default = other_addresses.order_by('pk').first()
+            if fallback_default:
+                fallback_default.is_default = True
+                fallback_default.save(update_fields=['is_default'])
+
+        if label:
+            addr.label = label
+        elif not addr.pk:
+            addr.label = 'home'
+
+        addr.full_name = full_name
+        addr.phone = phone
+        addr.address_line1 = address_line1
+        addr.address_line2 = address_line2
+        addr.city = city
+        addr.state = state
+        addr.pincode = pincode
+        addr.is_default = should_be_default
+        addr.save()
+        return addr
+
+
 def address_save(request):
     """AJAX: create or update an address."""
     if not request.user.is_authenticated:
@@ -114,23 +173,23 @@ def address_save(request):
     if errors:
         return JsonResponse({'ok': False, 'errors': errors})
 
-    if addr_id:
-        addr = Address.objects.filter(pk=addr_id, user=request.user).first()
-        if not addr:
-            return JsonResponse({'ok': False, 'error': 'Address not found.'}, status=404)
-    else:
-        addr = Address(user=request.user)
-
-    addr.label = label
-    addr.full_name = full_name
-    addr.phone = phone
-    addr.address_line1 = line1
-    addr.address_line2 = line2
-    addr.city = city
-    addr.state = state
-    addr.pincode = pincode
-    addr.is_default = is_default
-    addr.save()
+    try:
+        addr = _upsert_address_for_user(
+            request.user,
+            full_name=full_name,
+            phone=phone,
+            address_line1=line1,
+            address_line2=line2,
+            city=city,
+            state=state,
+            pincode=pincode,
+            label=label,
+            address_id=addr_id,
+            set_as_default=is_default,
+            require_existing=bool(addr_id),
+        )
+    except ValueError:
+        return JsonResponse({'ok': False, 'error': 'Address not found.'}, status=404)
 
     return JsonResponse({
         'ok': True,
@@ -158,11 +217,28 @@ def address_delete(request):
         return JsonResponse({'ok': False, 'error': 'POST required.'}, status=405)
 
     addr_id = request.POST.get('address_id', '')
-    addr = Address.objects.filter(pk=addr_id, user=request.user).first()
-    if not addr:
-        return JsonResponse({'ok': False, 'error': 'Address not found.'}, status=404)
-    addr.delete()
-    return JsonResponse({'ok': True, 'message': 'Address deleted.'})
+    with transaction.atomic():
+        addr = Address.objects.select_for_update().filter(pk=addr_id, user=request.user).first()
+        if not addr:
+            return JsonResponse({'ok': False, 'error': 'Address not found.'}, status=404)
+
+        remaining = Address.objects.select_for_update().filter(user=request.user).exclude(pk=addr.pk).order_by('pk')
+        addr.delete()
+
+        new_default = remaining.filter(is_default=True).first()
+        if new_default:
+            remaining.exclude(pk=new_default.pk).update(is_default=False)
+        else:
+            new_default = remaining.first()
+            if new_default:
+                new_default.is_default = True
+                new_default.save(update_fields=['is_default'])
+
+    return JsonResponse({
+        'ok': True,
+        'message': 'Address deleted.',
+        'new_default_id': new_default.pk if new_default else None,
+    })
 
 
 # ── Order History ──
@@ -245,35 +321,39 @@ def cancel_order(request):
     if not order_id:
         return JsonResponse({'ok': False, 'error': 'Order ID is required.'})
 
-    order = Order.objects.filter(pk=order_id, user=request.user).first()
-    if not order:
-        return JsonResponse({'ok': False, 'error': 'Order not found.'}, status=404)
+    from .checkout import _increment_order_stock, _decrement_coupon_usage
 
-    if not order.can_cancel:
-        if order.status in ('shipped', 'out_for_delivery'):
-            msg = ('This order has already been shipped and cannot be cancelled online. '
-                   'Please refuse the delivery when the delivery partner arrives at your doorstep '
-                   'to automatically initiate a return.')
-        else:
-            msg = f'This order cannot be cancelled. Current status: {order.get_status_display()}.'
-        return JsonResponse({'ok': False, 'error': msg})
+    with transaction.atomic():
+        order = Order.objects.select_for_update().filter(pk=order_id, user=request.user).first()
+        if not order:
+            return JsonResponse({'ok': False, 'error': 'Order not found.'}, status=404)
 
-    # Cancel the order
-    order.status = 'cancelled'
-    order.cancellation_reason = reason or 'Cancelled by customer'
-    order.cancelled_at = timezone.now()
+        if not order.can_cancel:
+            if order.status in ('shipped', 'out_for_delivery'):
+                msg = ('This order has already been shipped and cannot be cancelled online. '
+                       'Please refuse the delivery when the delivery partner arrives at your doorstep '
+                       'to automatically initiate a return.')
+            else:
+                msg = f'This order cannot be cancelled. Current status: {order.get_status_display()}.'
+            return JsonResponse({'ok': False, 'error': msg})
 
-    # If payment was already collected, mark for refund
-    if order.payment_status == 'paid' and order.payment_method != 'cod':
-        order.payment_status = 'refunded'
+        was_confirmed = order.status == 'confirmed'
+        if was_confirmed:
+            _increment_order_stock(order)
+            _decrement_coupon_usage(order)
 
-    order.save(update_fields=['status', 'cancellation_reason', 'cancelled_at', 'payment_status', 'updated_at'])
+        refund = order.payment_status == 'paid' and order.payment_method != 'cod'
+        order.status = 'cancelled'
+        order.cancellation_reason = reason or 'Cancelled by customer'
+        order.cancelled_at = timezone.now()
+        order.payment_status = 'refunded' if refund else 'failed'
+        order.save(update_fields=['status', 'cancellation_reason', 'cancelled_at', 'payment_status', 'updated_at'])
 
     return JsonResponse({
         'ok': True,
         'message': f'Order {order.order_number} has been cancelled successfully.',
         'order_number': order.order_number,
-        'refund': order.payment_status == 'refunded',
+        'refund': refund,
     })
 
 
