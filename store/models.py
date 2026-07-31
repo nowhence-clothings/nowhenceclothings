@@ -10,7 +10,7 @@ class HeroSection(models.Model):
         ('video', 'Video'),
     ]
 
-    title = models.CharField(max_length=100, default='HOUSE OF AMBAVA')
+    title = models.CharField(max_length=100, default='Nowhence Clothings')
     subtitle = models.CharField(max_length=200, default='Exquisite Elegance Redefined')
     media_type = models.CharField(max_length=5, choices=MEDIA_CHOICES, default='image', help_text='Choose whether the background is an image or video')
     background_image = models.ImageField(upload_to='hero/', blank=True, null=True, help_text='Upload a background image (used when media type is Image)')
@@ -313,7 +313,7 @@ class StatItem(models.Model):
 class ContactInfo(models.Model):
     """Contact section info — phone, email, address, social links."""
     phone = models.CharField(max_length=30, default='+91 (123) 456-7890')
-    email = models.EmailField(default='info@houseofambava.com')
+    email = models.EmailField(default='info@NowhenceClothings.com')
     address = models.CharField(max_length=200, default='New Delhi, India')
     facebook_url = models.URLField(blank=True, default='')
     instagram_url = models.URLField(blank=True, default='')
@@ -365,7 +365,7 @@ class ContactInfo(models.Model):
 class AboutPage(models.Model):
     """Singleton model for the About page content."""
     heading = models.CharField(max_length=200, default='Our Story')
-    subheading = models.CharField(max_length=300, blank=True, default='The Journey Behind House of Ambava')
+    subheading = models.CharField(max_length=300, blank=True, default='The Journey Behind Nowhence Clothings')
     main_image = models.ImageField(upload_to='about/', help_text='Main portrait/image displayed on the left side of the page')
     secondary_image = models.ImageField(upload_to='about/', blank=True, null=True, help_text='Optional second image for visual depth')
     founder_name = models.CharField(max_length=100, default='Ambava')

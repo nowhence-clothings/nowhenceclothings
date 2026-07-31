@@ -15,7 +15,7 @@ class Migration(migrations.Migration):
             fields=[
                 ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
                 ('heading', models.CharField(default='Our Story', max_length=200)),
-                ('subheading', models.CharField(blank=True, default='The Journey Behind House of Ambava', max_length=300)),
+                ('subheading', models.CharField(blank=True, default='The Journey Behind Nowhence Clothings', max_length=300)),
                 ('main_image', models.ImageField(help_text='Main portrait/image displayed on the left side of the page', upload_to='about/')),
                 ('secondary_image', models.ImageField(blank=True, help_text='Optional second image for visual depth', null=True, upload_to='about/')),
                 ('founder_name', models.CharField(default='Ambava', max_length=100)),

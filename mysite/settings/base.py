@@ -1,5 +1,5 @@
 """
-Django base settings for House of Ambava.
+Django base settings for Nowhence Clothings.
 
 Shared settings used by both dev and prod configurations.
 """

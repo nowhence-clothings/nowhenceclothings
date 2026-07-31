@@ -38,16 +38,16 @@ Shipping to:
 {order.shipping_address}
 {order.shipping_city}, {order.shipping_state} — {order.shipping_pincode}
 
-You can track your order at: https://houseofambava.com/account/track-order/?order_number={order.order_number}
+You can track your order at: https://NowhenceClothings.com/account/track-order/?order_number={order.order_number}
 
-Thank you for shopping with House of Ambava!
+Thank you for shopping with Nowhence Clothings!
 
-— House of Ambava
+— Nowhence Clothings
 """
     try:
-        from_email = getattr(settings, 'DEFAULT_FROM_EMAIL', 'noreply@houseofambava.com')
+        from_email = getattr(settings, 'DEFAULT_FROM_EMAIL', 'noreply@NowhenceClothings.com')
         send_mail(
-            subject=f'Order Confirmed — #{order.order_number} | House of Ambava',
+            subject=f'Order Confirmed — #{order.order_number} | Nowhence Clothings',
             message=message,
             from_email=from_email,
             recipient_list=[order.user.email],
@@ -82,14 +82,14 @@ def send_shipping_notification(order):
 Order: #{order.order_number}
 Status: {order.get_status_display()}
 
-Track your order: https://houseofambava.com/account/track-order/?order_number={order.order_number}
+Track your order: https://NowhenceClothings.com/account/track-order/?order_number={order.order_number}
 
-— House of Ambava
+— Nowhence Clothings
 """
     try:
-        from_email = getattr(settings, 'DEFAULT_FROM_EMAIL', 'noreply@houseofambava.com')
+        from_email = getattr(settings, 'DEFAULT_FROM_EMAIL', 'noreply@nowhenceclothings.com')
         send_mail(
-            subject=f'Order #{order.order_number} — {order.get_status_display()} | House of Ambava',
+            subject=f'Order #{order.order_number} — {order.get_status_display()} | Nowhence Clothings',
             message=message,
             from_email=from_email,
             recipient_list=[order.user.email],

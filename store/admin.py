@@ -392,6 +392,6 @@ class WishlistAdmin(admin.ModelAdmin):
 
 
 # ── Admin site customisation ──
-admin.site.site_header = 'House of Ambava — Admin'
-admin.site.site_title = 'HOA Admin'
+admin.site.site_header = 'Nowhence Clothings — Admin'
+admin.site.site_title = 'Nowhence Clothings Admin'
 admin.site.index_title = 'Dashboard'

@@ -77,12 +77,12 @@ def contact_submit(request):
 
     # Try to send email notification to admin
     try:
-        from_email = getattr(django_settings, 'DEFAULT_FROM_EMAIL', 'noreply@houseofambava.com')
+        from_email = getattr(django_settings, 'DEFAULT_FROM_EMAIL', 'noreply@NowhenceClothings.com')
         send_mail(
-            subject=f'[House of Ambava] Contact: {subject or "New message"}',
+            subject=f'[Nowhence Clothings] Contact: {subject or "New message"}',
             message=f'From: {name} ({email})\nPhone: {phone or "N/A"}\n\n{message}',
             from_email=from_email,
-            recipient_list=[getattr(django_settings, 'EMAIL_HOST_USER', 'info@houseofambava.com')],
+            recipient_list=[getattr(django_settings, 'EMAIL_HOST_USER', 'info@NowhenceClothings.com')],
             fail_silently=True,
         )
     except Exception:
@@ -340,14 +340,14 @@ def password_reset_request(request):
     # Send email
     reset_url = f'{request.scheme}://{request.get_host()}/account/reset-password/?uid={uid}&token={token}'
     try:
-        from_email = getattr(django_settings, 'DEFAULT_FROM_EMAIL', 'noreply@houseofambava.com')
+        from_email = getattr(django_settings, 'DEFAULT_FROM_EMAIL', 'noreply@NowhenceClothings.com')
         send_mail(
-            subject='Reset your House of Ambava password',
+            subject='Reset your Nowhence Clothings password',
             message=f'Hi {user.first_name or user.username},\n\n'
                     f'Click the link below to reset your password:\n{reset_url}\n\n'
                     f'This link expires in 1 hour.\n\n'
                     f'If you did not request this, please ignore this email.\n\n'
-                    f'— House of Ambava',
+                    f'— Nowhence Clothings',
             from_email=from_email,
             recipient_list=[email],
             fail_silently=False,

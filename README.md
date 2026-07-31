@@ -1,4 +1,4 @@
-# House of Ambava
+# Nowhence Clothings
 
 A luxury lehenga e-commerce website built with Django.
 

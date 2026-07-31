@@ -6,10 +6,10 @@ from django.shortcuts import render
 def privacy_policy(request):
     return render(request, 'legal.html', {
         'page_title': 'Privacy Policy',
-        'meta_description': 'Privacy Policy for House of Ambava — learn how we handle your data.',
+        'meta_description': 'Privacy Policy for Nowhence Clothings — learn how we handle your data.',
         'content': """
 <h2>1. Information We Collect</h2>
-<p>When you use House of Ambava, we may collect the following information:</p>
+<p>When you use Nowhence Clothings, we may collect the following information:</p>
 <ul>
     <li><strong>Personal Information:</strong> Name, email address, phone number, and shipping address when you create an account or place an order.</li>
     <li><strong>Payment Information:</strong> Payment details are processed securely through Razorpay. We do not store your card details on our servers.</li>
@@ -38,10 +38,10 @@ def privacy_policy(request):
 <p>We use industry-standard security measures including SSL encryption, secure payment processing, and access controls to protect your data.</p>
 
 <h2>5. Your Rights</h2>
-<p>You may request access to, correction of, or deletion of your personal data by emailing us at <a href="mailto:privacy@houseofambava.com">privacy@houseofambava.com</a>.</p>
+<p>You may request access to, correction of, or deletion of your personal data by emailing us at <a href="mailto:privacy@NowhenceClothings.com">privacy@NowhenceClothings.com</a>.</p>
 
 <h2>6. Contact Us</h2>
-<p>For privacy-related queries, contact us at <a href="mailto:privacy@houseofambava.com">privacy@houseofambava.com</a>.</p>
+<p>For privacy-related queries, contact us at <a href="mailto:privacy@NowhenceClothings.com">privacy@NowhenceClothings.com</a>.</p>
 """
     })
 
@@ -49,10 +49,10 @@ def privacy_policy(request):
 def terms_conditions(request):
     return render(request, 'legal.html', {
         'page_title': 'Terms & Conditions',
-        'meta_description': 'Terms and Conditions for House of Ambava online store.',
+        'meta_description': 'Terms and Conditions for Nowhence Clothings online store.',
         'content': """
 <h2>1. Acceptance of Terms</h2>
-<p>By accessing or using House of Ambava (houseofambava.com), you agree to be bound by these Terms & Conditions. If you do not agree, please do not use our website.</p>
+<p>By accessing or using Nowhence Clothings (nowhenceclothings.com), you agree to be bound by these Terms & Conditions. If you do not agree, please do not use our website.</p>
 
 <h2>2. Products & Pricing</h2>
 <ul>
@@ -76,10 +76,10 @@ def terms_conditions(request):
 </ul>
 
 <h2>5. Intellectual Property</h2>
-<p>All content on this website — including designs, images, logos, and text — is the property of House of Ambava and is protected by copyright laws. Unauthorized use is prohibited.</p>
+<p>All content on this website — including designs, images, logos, and text — is the property of Nowhence Clothings and is protected by copyright laws. Unauthorized use is prohibited.</p>
 
 <h2>6. Limitation of Liability</h2>
-<p>House of Ambava shall not be liable for any indirect, incidental, or consequential damages arising from the use of our website or products.</p>
+<p>Nowhence Clothings shall not be liable for any indirect, incidental, or consequential damages arising from the use of our website or products.</p>
 
 <h2>7. Governing Law</h2>
 <p>These terms are governed by the laws of India. Any disputes shall be subject to the exclusive jurisdiction of courts in New Delhi.</p>
@@ -90,7 +90,7 @@ def terms_conditions(request):
 def refund_policy(request):
     return render(request, 'legal.html', {
         'page_title': 'Refund & Return Policy',
-        'meta_description': 'Refund and Return Policy for House of Ambava — easy returns within 7 days.',
+        'meta_description': 'Refund and Return Policy for Nowhence Clothings — easy returns within 7 days.',
         'content': """
 <h2>1. Return Window</h2>
 <p>We accept returns within <strong>7 days</strong> of delivery. The product must be unused, unwashed, and in its original packaging with all tags attached.</p>
@@ -134,7 +134,7 @@ def refund_policy(request):
 def shipping_policy(request):
     return render(request, 'legal.html', {
         'page_title': 'Shipping Policy',
-        'meta_description': 'Shipping Policy for House of Ambava — free shipping on orders above ₹5,000.',
+        'meta_description': 'Shipping Policy for Nowhence Clothings — free shipping on orders above ₹5,000.',
         'content': """
 <h2>1. Shipping Coverage</h2>
 <p>We currently ship across India. International shipping is not available at this time. You can check delivery availability for your pincode on each product page.</p>

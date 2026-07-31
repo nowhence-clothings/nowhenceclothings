@@ -40,7 +40,7 @@ urlpatterns = [
     # SEO
     path('sitemap.xml', sitemap, {'sitemaps': sitemaps}, name='django.contrib.sitemaps.views.sitemap'),
     path('robots.txt', lambda r: __import__('django.http', fromlist=['HttpResponse']).HttpResponse(
-        'User-agent: *\nAllow: /\nSitemap: https://houseofambava.com/sitemap.xml\n',
+        'User-agent: *\nAllow: /\nSitemap: https://NowhenceClothings.com/sitemap.xml\n',
         content_type='text/plain'
     )),
 ]

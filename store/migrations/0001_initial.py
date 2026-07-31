@@ -50,7 +50,7 @@ class Migration(migrations.Migration):
             name='HeroSection',
             fields=[
                 ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('title', models.CharField(default='HOUSE OF AMBAVA', max_length=100)),
+                ('title', models.CharField(default='Nowhence Clothings', max_length=100)),
                 ('subtitle', models.CharField(default='Exquisite Elegance Redefined', max_length=200)),
                 ('background_image', models.ImageField(upload_to='hero/')),
                 ('is_active', models.BooleanField(default=True)),

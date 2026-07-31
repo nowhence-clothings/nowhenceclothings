@@ -84,7 +84,7 @@ def make_placeholder(media_dir, filename, label, category, w=600, h=800):
         bbox2 = draw.textbbox((0, 0), line2, font=font_lg)
         draw.text(((w - (bbox2[2] - bbox2[0])) // 2, cy + size + 88), line2, fill=light, font=font_lg)
 
-    wm = 'HOUSE OF AMBAVA'
+    wm = 'Nowhence Clothings'
     wm_bbox = draw.textbbox((0, 0), wm, font=font_sm)
     draw.text(((w - (wm_bbox[2] - wm_bbox[0])) // 2, h - 50), wm, fill=(*accent_rgb, 80), font=font_sm)
 
