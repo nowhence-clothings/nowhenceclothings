@@ -149,38 +149,55 @@
         </div>
     </div>
 
-    <!-- Hero Section with 3D Background -->
+    <section class="hero" id="home">
+
     {% if hero and hero.is_video %}
-    <section class="hero hero-video" id="home">
-        <video class="hero-video-bg" autoplay muted loop playsinline>
+        <video class="hero-media" autoplay muted loop playsinline>
             <source src="{{ hero.background_video.url }}" type="video/mp4">
         </video>
+
     {% elif hero and hero.is_image %}
-    <section class="hero" id="home" style="background-image: url('{{ hero.background_image.url }}'); background-size: cover; background-position: center;">
+        <img
+            class="hero-media"
+            src="{{ hero.background_image.url }}"
+            alt="{{ hero.title }}"
+        >
+
     {% else %}
-    <section class="hero" id="home" style="background-image: url('{% static 'images/hero-bg.jpg' %}'); background-size: cover; background-position: center;">
+        <img
+            class="hero-media"
+            src="{% static 'images/hero-bg.jpg' %}"
+            alt="Nowhence Clothings"
+        >
     {% endif %}
-        <div class="hero-background">
-            <div class="animate-bg-1"></div>
-            <div class="animate-bg-2"></div>
-            <div class="animate-bg-3"></div>
+
+    <div class="hero-overlay"></div>
+
+    <div class="hero-background">
+        <div class="animate-bg-1"></div>
+        <div class="animate-bg-2"></div>
+        <div class="animate-bg-3"></div>
+    </div>
+
+    <div class="hero-content">
+        <div class="floating-text">
+            <h1 class="hero-title">{{ hero.title|default:"Nowhence Clothings" }}</h1>
+            <p class="hero-subtitle">{{ hero.subtitle|default:"Exquisite Elegance Redefined" }}</p>
         </div>
-        <div class="hero-content">
-            <div class="floating-text">
-                <h1 class="hero-title">{{ hero.title|default:"Nowhence Clothings" }}</h1>
-                <p class="hero-subtitle">{{ hero.subtitle|default:"Exquisite Elegance Redefined" }}</p>
-            </div>
-            <div class="cta-section">
-                <a href="#collection" class="btn btn-primary">Explore Now</a>
-                <a href="{% url 'about' %}" class="btn btn-secondary">Learn More</a>
-            </div>
+
+        <div class="cta-section">
+            <a href="#collection" class="btn btn-primary">Explore Now</a>
+            <a href="{% url 'about' %}" class="btn btn-secondary">Learn More</a>
         </div>
-        <div class="scroll-indicator">
-            <span></span>
-            <span></span>
-            <span></span>
-        </div>
-    </section>
+    </div>
+
+    <div class="scroll-indicator">
+        <span></span>
+        <span></span>
+        <span></span>
+    </div>
+
+</section>
 
     <!-- 3D Card Section -->
     <section class="featured-section" id="featured">
