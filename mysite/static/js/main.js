@@ -933,16 +933,18 @@ function tick(now) {
     }
 }
 
-function startTick() { if (_isHomePage && !_running) { _running = true; _prevTime = 0; requestAnimationFrame(tick); } }
-window.addEventListener('scroll', startTick, { passive: true });
+function startTick() {
+    // Disable home page cylindrical tilt animation.
+    // Keep Lenis smooth scrolling active without section 3D transforms.
+}
+window.removeEventListener('scroll', startTick, { passive: true });
 
-// Unified rAF loop — drives both Lenis smooth scroll and our 3D animations
+// Unified rAF loop — drives Lenis smooth scroll only
 function globalRAF(time) {
     if (lenis) lenis.raf(time);        // advance Lenis interpolation
     requestAnimationFrame(globalRAF);
 }
 requestAnimationFrame(globalRAF);
-startTick();
 
 // Lightweight mouse parallax on hero background (cached ref)
 if (_heroBackground) {
