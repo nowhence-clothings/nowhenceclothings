@@ -3055,10 +3055,26 @@ footer {
         padding: 0 16px;
         justify-content: space-between;
         align-items: center;
+        position: relative;
+    }
+
+    /* Layout: logo left, hamburger centered, icons right */
+    .logo {
+        order: 1;
+        margin-left: 8px;
+        display: flex;
+        align-items: center;
+        z-index: 2;
     }
 
     .hamburger {
         display: flex;
+        position: absolute;
+        left: 50%;
+        top: 50%;
+        transform: translate(-50%, -50%);
+        z-index: 1100;
+        order: 2;
     }
 
     #mainNav {
@@ -3110,6 +3126,10 @@ footer {
 
     .header-icons {
         gap: 14px;
+        order: 3;
+        display: flex;
+        align-items: center;
+        margin-left: auto;
     }
 
     .header-icons > a:not(.profile-trigger),
