@@ -267,7 +267,7 @@ header {
     content: '';
     position: absolute;
     width: 3.8em;
-    height: 15em;
+    height: 30em;
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%) rotate(-90deg);
