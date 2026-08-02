@@ -3041,6 +3041,24 @@ footer {
    RESPONSIVE — MOBILE (≤ 768px)
    ═══════════════════════════════════════════ */
 @media (max-width: 768px) {
+    /* Stronger header spacing to avoid overlaps on narrow screens */
+    .header-content {
+        padding-left: 88px !important;
+        padding-right: 88px !important;
+        min-height: 48px;
+    }
+
+    .logo {
+        max-width: calc(100% - 196px) !important;
+    }
+
+    .hamburger {
+        left: 12px !important;
+    }
+
+    .header-icons {
+        right: 12px !important;
+    }
     /* ── Header & Navigation ── */
     header {
         padding: 12px 0;
@@ -3409,6 +3427,15 @@ footer {
    RESPONSIVE — SMALL MOBILE (≤ 480px)
    ═══════════════════════════════════════════ */
 @media (max-width: 480px) {
+    /* Tighter reserves for small phones */
+    .header-content {
+        padding-left: 64px !important;
+        padding-right: 64px !important;
+    }
+
+    .logo {
+        max-width: calc(100% - 140px) !important;
+    }
     .hero {
         height: 70vh;
     }
