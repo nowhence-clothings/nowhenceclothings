@@ -3162,11 +3162,11 @@ footer {
         z-index: 1200;
     }
     /* Show only the 'O' emblem in the header center */
-    .logo .brand-logo-text .logo-letter { display: none !important; }
-    .logo .brand-logo-text .logo-letter-o { display: inline-flex !important; position: absolute !important; left: 50% !important; top: 50% !important; transform: translate(-50%, -50%) !important; z-index: 1250 !important; }
-    .logo .brand-logo-text .logo-letter-o .button-icon { width: 36px !important; height: 36px !important; display: block !important; }
-    /* Make sure the logo container allows the centered emblem to be visible */
-    .logo { overflow: visible !important; }
+    /* Restore full brand text on mobile and keep emblem inline */
+    .logo .brand-logo-text .logo-letter { display: inline-block !important; position: relative !important; }
+    .logo .brand-logo-text .logo-letter-o { display: inline-flex !important; position: relative !important; left: auto !important; top: auto !important; transform: none !important; z-index: 2 !important; }
+    .logo .brand-logo-text .logo-letter-o .button-icon { width: 1em !important; height: 1em !important; display: block !important; }
+    .logo { overflow: hidden; }
 
     .logo-emblem {
         width: 55px;
