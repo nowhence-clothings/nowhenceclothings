@@ -3682,7 +3682,7 @@ section {
 }
 
 .parallax-section.experience-bg {
-    background-image: url('../images/experience-bg.jpg');
+    background-image: url('../images/experience-bg.png');
 }
 
 .parallax-section.experience-bg::before {
