@@ -314,9 +314,9 @@ class ContactInfo(models.Model):
     """Contact section info — phone, email, address, social links."""
     phone = models.CharField(max_length=30, default='+91 (123) 456-7890')
     email = models.EmailField(default='info@NowhenceClothings.com')
-    address = models.CharField(max_length=200, default='New Delhi, India')
+    address = models.CharField(max_length=200, default='Hyderabad, India')
     facebook_url = models.URLField(blank=True, default='')
-    instagram_url = models.URLField(blank=True, default='')
+    instagram_url = models.URLField(blank=True, default='https://www.instagram.com/nowhence_clothings/')
     twitter_url = models.URLField(blank=True, default='')
     pinterest_url = models.URLField(blank=True, default='')
     youtube_url = models.URLField(blank=True, default='')
