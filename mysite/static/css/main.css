@@ -3043,7 +3043,7 @@ footer {
 @media (max-width: 768px) {
     /* ── Header & Navigation (mobile) ── */
     header {
-        padding: 12px 0;
+        padding: 20px 0;
         /* Remove backdrop-filter on mobile — it creates a containing block
            that breaks position:fixed on #mainNav fullscreen overlay */
         backdrop-filter: none;
@@ -3067,12 +3067,13 @@ footer {
         z-index: 2;
     }
 
+    /* Hamburger fixed left */
     .hamburger {
         display: flex;
         position: absolute;
-        left: 50%;
+        left: 12px;
         top: 50%;
-        transform: translate(-50%, -50%);
+        transform: translateY(-50%);
         z-index: 1100;
         order: 2;
     }
@@ -3147,17 +3148,33 @@ footer {
         height: 34px;
     }
 
+    /* Logo: hide full text on mobile, show emblem centered */
     .logo {
         font-size: 16px;
         padding: 6px 12px;
-        position: absolute;
-        left: 12px;
-        top: 50%;
-        transform: translateY(-50%);
+        position: static;
+        left: auto;
+        top: auto;
+        transform: none;
         display: flex;
         align-items: center;
         gap: 8px;
         z-index: 1200;
+    }
+
+    .logo .brand-logo-text {
+        display: none !important;
+    }
+
+    .logo-emblem {
+        display: block;
+        position: absolute;
+        left: 50%;
+        top: 50%;
+        transform: translate(-50%, -50%);
+        width: 36px;
+        height: 36px;
+        z-index: 1250;
     }
 
     .logo-emblem {
