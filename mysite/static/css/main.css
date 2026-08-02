@@ -266,8 +266,8 @@ header {
 .logo-letter-o::before {
     content: '';
     position: absolute;
-    width: 1.8em;
-    height: 2em;
+    width: 2.8em;
+    height: 10em;
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%) rotate(-90deg);
