@@ -312,7 +312,7 @@ class StatItem(models.Model):
 
 class ContactInfo(models.Model):
     """Contact section info — phone, email, address, social links."""
-    phone = models.CharField(max_length=30, default='+91 (123) 456-7890')
+    phone = models.CharField(max_length=30, default='+91 8096584948')
     email = models.EmailField(default='info@NowhenceClothings.com')
     address = models.CharField(max_length=200, default='Hyderabad, India')
     facebook_url = models.URLField(blank=True, default='')

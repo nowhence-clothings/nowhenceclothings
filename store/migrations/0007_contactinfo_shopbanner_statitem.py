@@ -14,7 +14,7 @@ class Migration(migrations.Migration):
             name='ContactInfo',
             fields=[
                 ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('phone', models.CharField(default='+91 (123) 456-7890', max_length=30)),
+                ('phone', models.CharField(default='+91 8096584948', max_length=30)),
                 ('email', models.EmailField(default='info@NowhenceClothings.com', max_length=254)),
                 ('address', models.CharField(default='Hyderabad, India', max_length=200)),
                 ('facebook_url', models.URLField(blank=True, default='')),
