@@ -231,6 +231,8 @@ header {
 
 /* ── Text-based animated logo ── */
 .brand-logo-text {
+    position: relative;
+    z-index: 2;
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     font-size: 20px;
     font-weight: 700;
@@ -240,6 +242,22 @@ header {
     align-items: center;
     user-select: none;
     line-height: 1;
+}
+
+.brand-logo-text::before {
+    content: '';
+    position: absolute;
+    width: 10em;
+    height: 3.4em;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 240 120'%3E%3Cpath d='M20 30 L70 15 L110 40 L150 15 L220 30 C225 30 230 35 230 40 L230 90 C230 100 225 110 215 110 H25 C15 110 10 100 10 90 L10 40 C10 35 15 30 20 30 Z' fill='%23ffffff' stroke='%23000000' stroke-width='10' stroke-linecap='round' stroke-linejoin='round'/%3E%3Cpath d='M68 14 L110 55 L152 14' fill='none' stroke='%23000000' stroke-width='10' stroke-linecap='round'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-size: contain;
+    opacity: 0.22;
+    pointer-events: none;
+    z-index: 1;
 }
 
 .brand-logo-text .logo-letter {
@@ -258,22 +276,6 @@ header {
     transform-origin: center center;
     will-change: transform;
     z-index: 2;
-}
-
-.logo-letter-o::before {
-    content: '';
-    position: absolute;
-    width: 2.4em;
-    height: 3em;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 120 140'%3E%3Cpath d='M20 20 L40 8 L60 35 L80 8 L100 20 L100 120 C100 125 95 130 90 130 H30 C25 130 20 125 20 120 Z' fill='%23ffffff' stroke='%23000000' stroke-width='8' stroke-linecap='round' stroke-linejoin='round'/%3E%3Cpath d='M40 8 L60 35 L80 8' fill='none' stroke='%23000000' stroke-width='8' stroke-linecap='round'/%3E%3C/svg%3E");
-    background-repeat: no-repeat;
-    background-size: contain;
-    opacity: 0.28;
-    pointer-events: none;
-    z-index: 1;
 }
 
 .logo-letter-o .button-icon {
@@ -311,8 +313,8 @@ header {
     color: #e8e8e8;
 }
 
-[data-theme="dark"] .logo-letter-o::before {
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 120 140'%3E%3Cpath d='M20 20 L40 8 L60 35 L80 8 L100 20 L100 120 C100 125 95 130 90 130 H30 C25 130 20 125 20 120 Z' fill='%23000000' stroke='%23ffffff' stroke-width='8' stroke-linecap='round' stroke-linejoin='round'/%3E%3Cpath d='M40 8 L60 35 L80 8' fill='none' stroke='%23ffffff' stroke-width='8' stroke-linecap='round'/%3E%3C/svg%3E");
+[data-theme="dark"] .brand-logo-text::before {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 240 120'%3E%3Cpath d='M20 30 L70 15 L110 40 L150 15 L220 30 C225 30 230 35 230 40 L230 90 C230 100 225 110 215 110 H25 C15 110 10 100 10 90 L10 40 C10 35 15 30 20 30 Z' fill='%23000000' stroke='%23ffffff' stroke-width='10' stroke-linecap='round' stroke-linejoin='round'/%3E%3Cpath d='M68 14 L110 55 L152 14' fill='none' stroke='%23ffffff' stroke-width='10' stroke-linecap='round'/%3E%3C/svg%3E");
 }
 
 [data-theme="dark"] .logo-letter-o .button-icon {
