@@ -263,8 +263,21 @@ header {
     z-index: 2;
 }
 
-.logo-letter-o::before {
-    content: none;
+.brand-logo-text::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: calc(100% + 2em);
+    height: 2.2em;
+    transform: translate(-50%, -50%);
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 220 100'%3E%3Cpath d='M16 22 H210 a4 4 0 0 1 4 4 V74 a4 4 0 0 1 -4 4 H96 l-12 18 -20 -20 20 -20 H16 a4 4 0 0 1 -4 -4 V26 a4 4 0 0 1 4 -4 Z' fill='%23ffffff' stroke='%23000000' stroke-width='8' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-size: 100% 100%;
+    background-position: center center;
+    opacity: 0.28;
+    pointer-events: none;
+    z-index: 0;
 }
 
 .logo-letter-o .button-icon {
