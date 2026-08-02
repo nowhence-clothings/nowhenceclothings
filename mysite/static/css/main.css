@@ -3061,6 +3061,11 @@ footer {
         justify-content: center;
         align-items: center;
     }
+    /* Reserve space for left/right controls so centered logo doesn't overlap */
+    .header-content {
+        padding-left: 64px;
+        padding-right: 64px;
+    }
 
     .hamburger {
         display: flex;
@@ -3150,6 +3155,20 @@ footer {
     .logo {
         font-size: 16px;
         padding: 6px 12px;
+    }
+
+    /* Prevent logo overflow and hide decorative emblem on small screens */
+    .logo {
+        max-width: calc(100% - 140px);
+        text-align: center;
+        overflow: hidden;
+        white-space: nowrap;
+        text-overflow: ellipsis;
+        z-index: 2;
+    }
+
+    .logo-emblem {
+        display: none;
     }
 
     .logo-emblem {
