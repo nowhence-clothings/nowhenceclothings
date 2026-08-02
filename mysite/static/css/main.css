@@ -267,11 +267,11 @@ header {
     content: '';
     position: absolute;
     width: 16em;
-    height: 6.5em;
+    height: 7.5em;
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 220 100'%3E%3Cpath d='M18 14 L60 14 L80 34 L100 14 L202 14 C206 14 210 18 210 22 L210 78 C210 82 206 86 202 86 H18 C14 86 10 82 10 78 L10 22 C10 18 14 14 18 14 Z' fill='%23ffffff' stroke='%23000000' stroke-width='10' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 220 120'%3E%3Cpath d='M20 12 H210 C214 12 218 16 218 20 V100 C218 104 214 108 210 108 H20 C16 108 12 104 12 100 V68 L2 60 L12 52 V20 C12 16 16 12 20 12 Z' fill='%23ffffff' stroke='%23000000' stroke-width='10' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
     background-repeat: no-repeat;
     background-size: 100% 100%;
     background-position: center center;
