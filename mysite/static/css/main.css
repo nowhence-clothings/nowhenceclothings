@@ -3061,7 +3061,7 @@ footer {
     /* Layout: logo left, hamburger centered, icons right */
     .logo {
         order: 1;
-        margin-left: 44px; /* ensure logo sits to the right of the hamburger */
+        margin-left: 32px; /* place logo closer to the hamburger */
         display: flex;
         align-items: center;
         z-index: 1110;
@@ -3158,7 +3158,7 @@ footer {
         transform: none;
         display: flex;
         align-items: center;
-        gap: 0;
+        gap: 4px;
         z-index: 1200;
         overflow: visible;
     }
