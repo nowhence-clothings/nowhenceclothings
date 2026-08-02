@@ -244,22 +244,6 @@ header {
     line-height: 1;
 }
 
-.brand-logo-text::before {
-    content: '';
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    width: calc(100% + 8em);
-    height: 5.4em;
-    transform: translate(-50%, -50%);
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 280 100'%3E%3Cpath d='M20 24 H80 L100 44 L80 64 H20 C15 64 11 60 11 55 V45 C11 40 15 36 20 36 Z M100 24 H260 C265 24 270 29 270 34 V66 C270 71 265 76 260 76 H100 Z' fill='%23ffffff' stroke='%23000000' stroke-width='10' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
-    background-repeat: no-repeat;
-    background-size: 100% 100%;
-    background-position: center center;
-    opacity: 0.28;
-    pointer-events: none;
-    z-index: 0;
-}
 
 .brand-logo-text .logo-letter {
     display: inline-block;
@@ -312,9 +296,6 @@ header {
     color: #e8e8e8;
 }
 
-[data-theme="dark"] .brand-logo-text::before {
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 280 100'%3E%3Cpath d='M20 24 H80 L100 44 L80 64 H20 C15 64 11 60 11 55 V45 C11 40 15 36 20 36 Z M100 24 H260 C265 24 270 29 270 34 V66 C270 71 265 76 260 76 H100 Z' fill='%23000000' stroke='%23ffffff' stroke-width='10' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
-}
 
 [data-theme="dark"] .logo-letter-o .button-icon {
     filter: none;
