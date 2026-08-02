@@ -244,21 +244,6 @@ header {
     line-height: 1;
 }
 
-.brand-logo-text::before {
-    content: '';
-    position: absolute;
-    width: 10em;
-    height: 1.4em;
-    top: 0;
-    left: 50%;
-    transform: translate(-50%, -60%);
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 240 80'%3E%3Cpath d='M10 55 C20 15 60 10 80 20 C100 30 110 55 120 55 C130 55 140 30 160 20 C180 10 220 15 230 55 L230 70 L10 70 Z' fill='%23ffffff' stroke='%23000000' stroke-width='8' stroke-linecap='round' stroke-linejoin='round'/%3E%3Cpath d='M80 20 L120 55 L160 20' fill='none' stroke='%23000000' stroke-width='8' stroke-linecap='round'/%3E%3C/svg%3E");
-    background-repeat: no-repeat;
-    background-size: contain;
-    opacity: 0.35;
-    pointer-events: none;
-    z-index: 1;
-}
 
 .brand-logo-text .logo-letter {
     display: inline-block;
@@ -273,9 +258,26 @@ header {
     width: 1em;
     height: 1em;
     margin-right: 0.24em;
+    animation: shirtButtonPop 3.2s cubic-bezier(0.25, 0.46, 0.45, 0.94) infinite;
     transform-origin: center center;
     will-change: transform;
     z-index: 2;
+}
+
+.logo-letter-o::before {
+    content: '';
+    position: absolute;
+    width: 1.8em;
+    height: 2em;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 120 140'%3E%3Cpath d='M20 20 L40 8 L60 35 L80 8 L100 20 L100 120 C100 125 95 130 90 130 H30 C25 130 20 125 20 120 Z' fill='%23ffffff' stroke='%23000000' stroke-width='8' stroke-linecap='round' stroke-linejoin='round'/%3E%3Cpath d='M40 8 L60 35 L80 8' fill='none' stroke='%23000000' stroke-width='8' stroke-linecap='round'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-size: contain;
+    opacity: 0.28;
+    pointer-events: none;
+    z-index: 1;
 }
 
 .logo-letter-o .button-icon {
@@ -283,7 +285,6 @@ header {
     height: 100%;
     display: block;
     filter: drop-shadow(0 2px 5px rgba(0, 0, 0, 0.12));
-    animation: shirtButtonPop 3.2s cubic-bezier(0.25, 0.46, 0.45, 0.94) infinite;
 }
 
 .logo-letter-o .button-icon circle:first-child {
@@ -313,8 +314,8 @@ header {
     color: #e8e8e8;
 }
 
-[data-theme="dark"] .brand-logo-text::before {
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 240 80'%3E%3Cpath d='M10 55 C20 15 60 10 80 20 C100 30 110 55 120 55 C130 55 140 30 160 20 C180 10 220 15 230 55 L230 70 L10 70 Z' fill='%23000000' stroke='%23ffffff' stroke-width='8' stroke-linecap='round' stroke-linejoin='round'/%3E%3Cpath d='M80 20 L120 55 L160 20' fill='none' stroke='%23ffffff' stroke-width='8' stroke-linecap='round'/%3E%3C/svg%3E");
+[data-theme="dark"] .logo-letter-o::before {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 120 140'%3E%3Cpath d='M20 20 L40 8 L60 35 L80 8 L100 20 L100 120 C100 125 95 130 90 130 H30 C25 130 20 125 20 120 Z' fill='%23000000' stroke='%23ffffff' stroke-width='8' stroke-linecap='round' stroke-linejoin='round'/%3E%3Cpath d='M40 8 L60 35 L80 8' fill='none' stroke='%23ffffff' stroke-width='8' stroke-linecap='round'/%3E%3C/svg%3E");
 }
 
 [data-theme="dark"] .logo-letter-o .button-icon {
