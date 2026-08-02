@@ -253,6 +253,7 @@ header {
     justify-content: center;
     width: 1em;
     height: 1em;
+    margin-right: 0.24em;
     animation: letterOPulse 4s cubic-bezier(0.4, 0, 0.2, 1) infinite;
     transform-origin: center center;
     will-change: transform;
@@ -1729,6 +1730,8 @@ nav a:active {
     background-size: cover;
     background-position: center;
     width: 100%;
+    will-change: transform, opacity;
+    transform: translateZ(0);
 }
 
 /* Hero video background */

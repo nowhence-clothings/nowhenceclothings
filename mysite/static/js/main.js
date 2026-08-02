@@ -692,7 +692,7 @@ const _st = new WeakMap();
 function S(el, def) { if (!_st.has(el)) _st.set(el, { ...def }); return _st.get(el); }
 
 // Base lerp factor at 60 fps — delta-time corrected in tick()
-const BASE_LERP = 0.08;
+const BASE_LERP = 0.12;
 const DEAD = 0.04;
 let _lastY = 0, _running = false, _wh = window.innerHeight;
 let _prevTime = 0;
@@ -902,7 +902,7 @@ function tick(now) {
         const tY = Math.sin(phase * 0.01745) * 10;
         const s = S(el, { ty: 0 });
         s.ty = lerp(s.ty, tY, L);
-        el.style.transform = `translate3d(0,${s.ty | 0}px,0)`;
+        el.style.transform = `translate3d(0,${s.ty.toFixed(1)}px,0)`;
         const d = s.ty - tY;
         if (d > DEAD || d < -DEAD) alive = true;
     }
@@ -919,7 +919,7 @@ function tick(now) {
         s.ty = lerp(s.ty, tgtTY, L);
         s.rx = lerp(s.rx, tgtRX, L);
         s.op = lerp(s.op, tgtOp < 0.2 ? 0.2 : tgtOp, L);
-        _heroText.style.transform = `perspective(600px) rotateX(${s.rx.toFixed(1)}deg) translateY(${s.ty.toFixed(0)}px)`;
+        _heroText.style.transform = `perspective(600px) rotateX(${s.rx.toFixed(1)}deg) translateY(${s.ty.toFixed(1)}px)`;
         const d = s.ty - tgtTY;
         if (d > DEAD || d < -DEAD) alive = true;
     }
@@ -955,7 +955,7 @@ if (_heroBackground) {
     function mouseTick() {
         _cx = lerp(_cx, _mx, 0.06);
         _cy = lerp(_cy, _my, 0.06);
-        _heroBackground.style.transform = `translate3d(${_cx|0}px,${_cy|0}px,0)`;
+        _heroBackground.style.transform = `translate3d(${_cx.toFixed(1)}px,${_cy.toFixed(1)}px,0)`;
         if (Math.abs(_cx - _mx) > 0.05 || Math.abs(_cy - _my) > 0.05) {
             requestAnimationFrame(mouseTick);
         } else {

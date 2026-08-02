@@ -4,9 +4,10 @@ https://docs.djangoproject.com/en/6.0/topics/http/urls/
 """
 from django.contrib import admin
 from django.contrib.sitemaps.views import sitemap
-from django.urls import include, path
+from django.urls import include, path, re_path
 from django.conf import settings
 from django.conf.urls.static import static
+from django.views.static import serve
 from .views import home, about
 from .sitemaps import StaticViewSitemap, ProductSitemap
 
@@ -45,9 +46,16 @@ urlpatterns = [
     )),
 ]
 
-# Serve media in development; WhiteNoise handles static automatically
+# Serve media in development. In production, Render can expose the media path directly
+# through the app if needed by serving from MEDIA_ROOT via a simple static route.
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+else:
+    urlpatterns += [
+        re_path(r'^media/(?P<path>.*)$', serve, {
+            'document_root': settings.MEDIA_ROOT,
+        }),
+    ]
 
 # Custom error handlers (used when DEBUG=False)
 handler404 = 'mysite.views.custom_404'
