@@ -3126,10 +3126,13 @@ footer {
 
     .header-icons {
         gap: 14px;
-        order: 3;
         display: flex;
         align-items: center;
-        margin-left: auto;
+        position: absolute;
+        right: 12px;
+        top: 50%;
+        transform: translateY(-50%);
+        z-index: 1200;
     }
 
     .header-icons > a:not(.profile-trigger),
@@ -3147,6 +3150,14 @@ footer {
     .logo {
         font-size: 16px;
         padding: 6px 12px;
+        position: absolute;
+        left: 12px;
+        top: 50%;
+        transform: translateY(-50%);
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        z-index: 1200;
     }
 
     .logo-emblem {
