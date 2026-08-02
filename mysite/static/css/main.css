@@ -3076,22 +3076,21 @@ footer {
     /* Center the logo and pin controls to edges on mobile */
     .header-content {
         position: relative;
-        justify-content: center;
+        justify-content: space-between;
         align-items: center;
-    }
-    /* Reserve space for left/right controls so centered logo doesn't overlap */
-    .header-content {
-        padding-left: 64px;
-        padding-right: 64px;
+        padding-left: 16px;
+        padding-right: 16px;
     }
 
     .hamburger {
         display: flex;
-        position: absolute;
-        left: 16px;
-        top: 50%;
-        transform: translateY(-50%);
-        z-index: 1100;
+        position: static;
+        left: auto;
+        top: auto;
+        transform: none;
+        z-index: 2;
+        order: 1;
+        margin-right: 8px;
     }
 
     #mainNav {
@@ -3143,12 +3142,13 @@ footer {
 
     .header-icons {
         gap: 14px;
-        position: absolute;
-        right: 16px;
-        top: 50%;
-        transform: translateY(-50%);
+        position: static;
+        right: auto;
+        top: auto;
+        transform: none;
         display: flex;
         align-items: center;
+        order: 3;
     }
 
     .header-icons > a:not(.profile-trigger),
@@ -3171,23 +3171,22 @@ footer {
     }
 
     .logo {
-        font-size: 16px;
-        padding: 6px 12px;
-    }
-
-    /* Prevent logo overflow and hide decorative emblem on small screens */
-    .logo {
-        max-width: calc(100% - 140px);
-        text-align: center;
+        font-size: 14px;
+        padding: 6px 8px;
+        order: 2;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        max-width: 60%;
         overflow: hidden;
         white-space: nowrap;
         text-overflow: ellipsis;
         z-index: 2;
     }
 
-    .logo-emblem {
-        display: none;
-    }
+    .logo .brand-logo-text { font-size: 14px; }
+
+    .logo-emblem { display: none; }
 
     .logo-emblem {
         width: 55px;
