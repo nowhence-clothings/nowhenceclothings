@@ -35,11 +35,11 @@ class HeroSection(models.Model):
 
     @property
     def is_video(self):
-        return self.media_type == 'video' and self.background_video
+        return bool(self.background_video)
 
     @property
     def is_image(self):
-        return self.media_type == 'image' and self.background_image
+        return not self.is_video and bool(self.background_image)
 
 
 class FeaturedCollection(models.Model):

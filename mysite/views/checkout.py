@@ -597,7 +597,7 @@ def place_order(request):
                     'key_id': rzp_key,
                     'amount': int(total * 100),
                     'currency': rzp_currency,
-                    'name': 'House of Ambava',
+                    'name': 'Nowhence Clothiongs',
                     'description': f'Order #{order.order_number}',
                     'prefill': {
                         'name': shipping['full_name'],

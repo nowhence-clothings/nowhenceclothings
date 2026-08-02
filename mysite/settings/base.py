@@ -133,6 +133,19 @@ STATIC_URL = '/static/'
 STATICFILES_DIRS = [BASE_DIR / 'mysite' / 'static']
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 
+
+def get_media_root(base_dir: Path) -> Path:
+    configured_root = os.environ.get('MEDIA_ROOT')
+    if configured_root:
+        return Path(configured_root)
+
+    render_data_dir = Path('/var/lib/render/project/.data')
+    if os.environ.get('RENDER') and render_data_dir.exists():
+        return render_data_dir / 'media'
+
+    return base_dir / 'media'
+
+
 STORAGES = {
     'default': {
         'BACKEND': 'django.core.files.storage.FileSystemStorage',
@@ -143,7 +156,8 @@ STORAGES = {
 }
 
 MEDIA_URL = '/media/'
-MEDIA_ROOT = BASE_DIR / 'media'
+MEDIA_ROOT = get_media_root(BASE_DIR)
+MEDIA_ROOT.mkdir(parents=True, exist_ok=True)
 
 # ────────────────────────────────────────────────────────────────
 # Sessions

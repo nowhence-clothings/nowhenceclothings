@@ -1,5 +1,8 @@
 import json
+import os
 from decimal import Decimal
+from pathlib import Path
+from unittest import mock
 
 from django.contrib.auth.models import User
 from django.core.cache import cache
@@ -7,9 +10,10 @@ from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import Client, RequestFactory, TestCase, override_settings
 from django.urls import reverse
 
+from mysite.settings.base import get_media_root
 from mysite.views.helpers import store_otp
 from mysite.views.features import review_submit
-from store.models import Address, ContactMessage, Coupon, Order, OrderItem, Review, ShowcaseProduct, UserProfile
+from store.models import Address, ContactMessage, Coupon, HeroSection, Order, OrderItem, Review, ShowcaseProduct, UserProfile
 
 
 def _test_image():
@@ -103,6 +107,33 @@ class ReviewApiTests(TestCase):
         self.assertEqual(payload['average'], 4.0)
         self.assertEqual(payload['reviews'][0]['date'], payload['reviews'][0]['created_at'])
         self.assertFalse(payload['reviews'][0]['verified'])
+
+
+class MediaRootTests(TestCase):
+    def test_get_media_root_uses_environment_override(self):
+        with mock.patch.dict(os.environ, {'MEDIA_ROOT': '/tmp/custom-media'}, clear=False):
+            self.assertEqual(get_media_root(Path('/tmp/base')), Path('/tmp/custom-media'))
+
+
+class HeroSectionTests(TestCase):
+    def test_homepage_uses_video_background_when_hero_has_video_file(self):
+        HeroSection.objects.create(
+            title='Video Hero',
+            subtitle='Animated launch',
+            media_type='image',
+            background_video=SimpleUploadedFile(
+                'hero.mp4',
+                b'fake-video-bytes',
+                content_type='video/mp4',
+            ),
+            is_active=True,
+        )
+
+        response = self.client.get(reverse('home'), follow=True)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, '<video class="hero-media"')
+        self.assertContains(response, 'type="video/mp4"')
 
 
 class ContactAndAuthTests(TestCase):
