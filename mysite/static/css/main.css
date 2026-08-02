@@ -3064,7 +3064,7 @@ footer {
         margin-left: 44px; /* ensure logo sits to the right of the hamburger */
         display: flex;
         align-items: center;
-        z-index: 1110; /* keep logo above the hamburger so first letter isn't covered */
+        z-index: 1110;
     }
 
     /* Hamburger fixed left */
@@ -3148,7 +3148,7 @@ footer {
         height: 34px;
     }
 
-    /* Logo: hide full text on mobile, show emblem centered */
+    /* Logo: show only the O emblem on mobile */
     .logo {
         font-size: 16px;
         padding: 6px 12px;
@@ -3158,15 +3158,30 @@ footer {
         transform: none;
         display: flex;
         align-items: center;
-        gap: 8px;
+        gap: 0;
         z-index: 1200;
+        overflow: visible;
     }
-    /* Show only the 'O' emblem in the header center */
-    /* Restore full brand text on mobile and keep emblem inline */
-    .logo .brand-logo-text .logo-letter { display: inline-block !important; position: relative !important; }
-    .logo .brand-logo-text .logo-letter-o { display: inline-flex !important; position: relative !important; left: auto !important; top: auto !important; transform: none !important; z-index: 2 !important; }
-    .logo .brand-logo-text .logo-letter-o .button-icon { width: 1em !important; height: 1em !important; display: block !important; }
-    .logo { overflow: hidden; }
+
+    .logo .brand-logo-text .logo-letter {
+        display: none !important;
+    }
+
+    .logo .brand-logo-text .logo-letter-o {
+        display: inline-flex !important;
+        position: relative !important;
+        left: auto !important;
+        top: auto !important;
+        transform: none !important;
+        z-index: 2 !important;
+        margin-right: 0 !important;
+    }
+
+    .logo .brand-logo-text .logo-letter-o .button-icon {
+        width: 1.1em !important;
+        height: 1.1em !important;
+        display: block !important;
+    }
 
     .logo-emblem {
         width: 55px;
