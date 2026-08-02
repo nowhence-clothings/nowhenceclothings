@@ -1752,7 +1752,7 @@ nav a:active {
     box-shadow: inset 0 0 1px rgba(255,255,255,0.2), 0 8px 30px rgba(0,0,0,0.18);
     overflow: hidden;
     padding: 0.12rem 0;
-    z-index: 90;
+    z-index: 101;
     scroll-margin-top: 110px;
 }
 
@@ -1761,23 +1761,24 @@ nav a:active {
     content: '';
     position: absolute;
     top: 50%;
-    width: 70px;
-    height: 70px;
+    width: 90px;
+    height: 90px;
     transform: translateY(-50%);
-    background: radial-gradient(circle, rgba(255,255,255,0.95) 0%, rgba(255,255,255,0.1) 45%, transparent 70%);
+    background: radial-gradient(circle at center, rgba(255,255,255,0.95) 0%, rgba(255,200,200,0.25) 35%, transparent 60%);
     border-radius: 50%;
     filter: blur(2px);
-    opacity: 0.8;
+    opacity: 0.95;
     pointer-events: none;
+    z-index: 0;
 }
 
 .launch-banner::before {
-    left: 0;
+    left: -20px;
     animation: launchBannerFlare 1.8s ease-in-out infinite;
 }
 
 .launch-banner::after {
-    right: 0;
+    right: -20px;
     animation: launchBannerFlare 1.8s ease-in-out infinite 0.9s;
 }
 
@@ -1807,8 +1808,8 @@ nav a:active {
     text-shadow: 0 1px 1px rgba(0,0,0,0.16);
     padding: 0.4rem 0.85rem;
     border-radius: 999px;
-    background: rgba(255,255,255,0.08);
-    box-shadow: inset 0 0 0 1px rgba(255,255,255,0.06), 0 6px 18px rgba(0,0,0,0.14);
+    background: rgba(255,255,255,0.1);
+    box-shadow: inset 0 0 0 1px rgba(255,255,255,0.12), 0 6px 18px rgba(0,0,0,0.14);
     transform: translateZ(0);
     flex: 0 0 auto;
 }
