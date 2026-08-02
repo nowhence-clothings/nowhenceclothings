@@ -254,7 +254,7 @@ header {
     width: 1em;
     height: 1em;
     margin-right: 0.24em;
-    animation: letterOPulse 4s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+    animation: letterOPulse 3s cubic-bezier(0.4, 0, 0.2, 1) infinite;
     transform-origin: center center;
     will-change: transform;
 }
@@ -271,10 +271,11 @@ header {
 
 @keyframes letterOPulse {
     0%   { transform: scale(1) rotate(0deg); }
-    20%  { transform: scale(1.6) rotate(90deg); }
-    40%  { transform: scale(1.6) rotate(180deg); }
-    60%  { transform: scale(1) rotate(360deg); }
-    100% { transform: scale(1) rotate(360deg); }
+    10%  { transform: scale(0.94) rotate(0deg); }
+    30%  { transform: scale(1.04) rotate(0deg); }
+    50%  { transform: scale(0.98) rotate(0deg); }
+    70%  { transform: scale(1.02) rotate(0deg); }
+    100% { transform: scale(1) rotate(0deg); }
 }
 
 [data-theme="dark"] .brand-logo-text {
